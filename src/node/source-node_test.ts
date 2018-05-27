@@ -1,4 +1,4 @@
-import { assert } from 'gs-testing/export/main';
+import { assert, should } from 'gs-testing/export/main';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType } from 'gs-types/export';
 import { instanceSourceId } from '../component/instance-source-id';
@@ -16,13 +16,13 @@ describe('node.SourceNode', () => {
   });
 
   describe('getSources', () => {
-    it(`should return the current node`, () => {
+    should(`return the current node`, () => {
       assert(node.getSources()).to.haveElements([node]);
     });
   });
 
   describe('listen', () => {
-    it(`should call the handler when the value changes`, () => {
+    should(`call the handler when the value changes`, () => {
       const mockListener = jasmine.createSpy('Listener');
       const context = new BaseDisposable();
       const newValue = 456;
@@ -38,7 +38,7 @@ describe('node.SourceNode', () => {
       assert(mockListener).toNot.haveBeenCalled();
     });
 
-    it(`should not call the handler if the value change is for another context`, () => {
+    should(`not call the handler if the value change is for another context`, () => {
       const mockListener = jasmine.createSpy('Listener');
       const context = new BaseDisposable();
 

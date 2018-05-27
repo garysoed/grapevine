@@ -1,6 +1,6 @@
 import 'jasmine';
 
-import { assert } from 'gs-testing/export/main';
+import { assert, should } from 'gs-testing/export/main';
 import { MockTime } from 'gs-testing/export/mock';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
@@ -20,7 +20,7 @@ describe('main.VineBuilder', () => {
   });
 
   describe('source', () => {
-    it(`should register the source correctly`, () => {
+    should(`register the source correctly`, () => {
       const sourceId = instanceSourceId('sourceId', NumberType);
       const context = new BaseDisposable();
       const mockHandler = jasmine.createSpy('Handler');
@@ -44,7 +44,7 @@ describe('main.VineBuilder', () => {
       mockTime.run();
     });
 
-    it(`should throw error if the source is already registered`, () => {
+    should(`throw error if the source is already registered`, () => {
       const sourceId = instanceSourceId('sourceId', NumberType);
       builder.source(sourceId, 123);
 
@@ -55,7 +55,7 @@ describe('main.VineBuilder', () => {
   });
 
   describe('stream', () => {
-    it(`should set up the stream correctly`, () => {
+    should(`set up the stream correctly`, () => {
       // Tree:
       // main ('27')
       // |- A (63)
@@ -117,7 +117,7 @@ describe('main.VineBuilder', () => {
       mockTime.run();
     });
 
-    it(`should throw error if the stream is already registered`, () => {
+    should(`throw error if the stream is already registered`, () => {
       const id = staticStreamId('id', NumberType);
       const vId = staticStreamId('vId', NumberType);
 
@@ -128,7 +128,7 @@ describe('main.VineBuilder', () => {
       }).to.throwError(/been registered/);
     });
 
-    it(`should throw error if a dependency node cannot be found`, () => {
+    should(`throw error if a dependency node cannot be found`, () => {
       const id = staticStreamId('id', NumberType);
       const vId = staticStreamId('vId', NumberType);
 
@@ -139,7 +139,7 @@ describe('main.VineBuilder', () => {
       }).to.throwError(/not found/);
     });
 
-    it(`should throw error if the nodes form a cycle`, () => {
+    should(`throw error if the nodes form a cycle`, () => {
       const aId = staticStreamId('a', NumberType);
       const bId = staticStreamId('b', NumberType);
       const cId = staticStreamId('c', NumberType);

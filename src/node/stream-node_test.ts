@@ -1,4 +1,4 @@
-import { assert } from 'gs-testing/export/main';
+import { assert, should } from 'gs-testing/export/main';
 import { ImmutableList } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType } from 'gs-types/export';
@@ -11,7 +11,7 @@ import { StreamNode } from './stream-node';
 
 describe('node.StreamNode', () => {
   describe('getSources', () => {
-    it(`should recursively return the sources`, () => {
+    should(`recursively return the sources`, () => {
       const time = Time.new();
 
       // Nodes:
@@ -38,7 +38,7 @@ describe('node.StreamNode', () => {
   });
 
   describe('getValue', () => {
-    it(`should compute the value correctly`, () => {
+    should(`compute the value correctly`, () => {
       const time = Time.new();
       const sourceNodeA = new SourceNode(instanceSourceId('a', NumberType), time, 2);
       const sourceNodeB = new SourceNode(instanceSourceId('b', NumberType), time, 3);

@@ -1,6 +1,6 @@
 import 'jasmine';
 
-import { assert } from 'gs-testing/export/main';
+import { assert, should } from 'gs-testing/export/main';
 import { MockTime } from 'gs-testing/export/mock';
 import { Time } from '../component/time';
 import { RequestQueue } from './request-queue';
@@ -19,7 +19,7 @@ describe('main.RequestQueue', () => {
   });
 
   describe('queue', () => {
-    it(`should queue and process the requests correctly`, () => {
+    should(`queue and process the requests correctly`, () => {
       const mockRequest1 = jasmine.createSpy('Request1');
       const mockRequest2 = jasmine.createSpy('Request2');
       const mockRequest3 = jasmine.createSpy('Request3');

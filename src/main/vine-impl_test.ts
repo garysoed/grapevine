@@ -1,6 +1,6 @@
 import 'jasmine';
 
-import { assert } from 'gs-testing/export/main';
+import { assert, should } from 'gs-testing/export/main';
 import { MockTime } from 'gs-testing/export/mock';
 import { ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
@@ -21,7 +21,7 @@ describe('main.VineImpl', () => {
   });
 
   describe('listen', () => {
-    it(`should call the handler correctly for source IDs`, () => {
+    should(`call the handler correctly for source IDs`, () => {
       const time = Time.new();
       const id = staticSourceId('id', NumberType);
       const initValue = 1;
@@ -51,7 +51,7 @@ describe('main.VineImpl', () => {
       mockTime.run();
     });
 
-    it(`should call the handler correctly for stream IDs`, () => {
+    should(`call the handler correctly for stream IDs`, () => {
       const time = Time.new();
       const sourceId = staticSourceId('sourceId', NumberType);
       const sourceNode = new SourceNode(sourceId, time, 1);
@@ -85,7 +85,7 @@ describe('main.VineImpl', () => {
       mockTime.run();
     });
 
-    it(`should throw error if the node cannot be found`, () => {
+    should(`throw error if the node cannot be found`, () => {
       const nodeId = staticSourceId('sourceId', NumberType);
       const context = new BaseDisposable();
       const vine = new VineImpl(Time.new(), ImmutableMap.of(), ImmutableMap.of(), window);
@@ -97,7 +97,7 @@ describe('main.VineImpl', () => {
   });
 
   describe('setValue', () => {
-    it(`should set the value correctly`, () => {
+    should(`set the value correctly`, () => {
       const time = Time.new();
       const id = staticSourceId('id', NumberType);
       const value = 2;
@@ -119,7 +119,7 @@ describe('main.VineImpl', () => {
       mockTime.run();
     });
 
-    it(`should throw error if the node cannot be found`, () => {
+    should(`throw error if the node cannot be found`, () => {
       const nodeId = staticSourceId('sourceId', NumberType);
       const context = new BaseDisposable();
       const vine = new VineImpl(Time.new(), ImmutableMap.of(), ImmutableMap.of(), window);

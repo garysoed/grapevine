@@ -1,4 +1,4 @@
-import { assert } from 'gs-testing/export/main';
+import { assert, should } from 'gs-testing/export/main';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { Time } from '../component/time';
 import { NodeCache } from './node-cache';
@@ -11,7 +11,7 @@ describe('node.NodeCache', () => {
   });
 
   describe('getCachedValue', () => {
-    it(`should return the cached value if exist`, () => {
+    should(`return the cached value if exist`, () => {
       const value = 123;
       const context = new BaseDisposable();
       const time = Time.new();
@@ -20,7 +20,7 @@ describe('node.NodeCache', () => {
       assert(cache.getCachedValue(context, time)).to.be(value);
     });
 
-    it(`should return undefined if the value does not exist at the time`, () => {
+    should(`return undefined if the value does not exist at the time`, () => {
       const value = 123;
       const context = new BaseDisposable();
       const time = Time.new();
@@ -29,7 +29,7 @@ describe('node.NodeCache', () => {
       assert(cache.getCachedValue(context, time)).toNot.beDefined();
     });
 
-    it(`should return undefined if the value does not exist at the context`, () => {
+    should(`return undefined if the value does not exist at the context`, () => {
       const value = 123;
       const context = new BaseDisposable();
       const time = Time.new();
@@ -38,13 +38,13 @@ describe('node.NodeCache', () => {
       assert(cache.getCachedValue(context, time)).toNot.beDefined();
     });
 
-    it(`should return undefined if the cache is empty`, () => {
+    should(`return undefined if the cache is empty`, () => {
       assert(cache.getCachedValue(new BaseDisposable(), Time.new())).toNot.beDefined();
     });
   });
 
   describe('getLatestCachedTimeBefore', () => {
-    it(`should return the latest cached time before the given time`, () => {
+    should(`return the latest cached time before the given time`, () => {
       const time0 = Time.new();
       const time1 = time0.increment();
       const time2 = time1.increment();
@@ -59,7 +59,7 @@ describe('node.NodeCache', () => {
       assert(cache.getLatestCachedTimeBefore(context, time2)).to.be(time1);
     });
 
-    it(`should return null if all the times are after the given time`, () => {
+    should(`return null if all the times are after the given time`, () => {
       const time0 = Time.new();
       const time1 = time0.increment();
 
@@ -70,7 +70,7 @@ describe('node.NodeCache', () => {
       assert(cache.getLatestCachedTimeBefore(context, time0)).to.beNull();
     });
 
-    it(`should return null if the context is wrong`, () => {
+    should(`return null if the context is wrong`, () => {
       const time0 = Time.new();
       const context = new BaseDisposable();
 
@@ -79,7 +79,7 @@ describe('node.NodeCache', () => {
       assert(cache.getLatestCachedTimeBefore(new BaseDisposable(), time0)).to.beNull();
     });
 
-    it(`should return null if the cache is empty`, () => {
+    should(`return null if the cache is empty`, () => {
       const time0 = Time.new();
 
       assert(cache.getLatestCachedTimeBefore(new BaseDisposable(), time0)).to.beNull();
@@ -87,7 +87,7 @@ describe('node.NodeCache', () => {
   });
 
   describe('setCachedValue', () => {
-    it(`should set the value correctly`, () => {
+    should(`set the value correctly`, () => {
       const time = Time.new();
       const value = 123;
       const context = new BaseDisposable();
@@ -96,7 +96,7 @@ describe('node.NodeCache', () => {
       assert(cache.getCachedValue(context, time)).to.be(value);
     });
 
-    it(`should clear the cache if the context is disposed`, () => {
+    should(`clear the cache if the context is disposed`, () => {
       const time = Time.new();
       const context = new BaseDisposable();
 
@@ -105,7 +105,7 @@ describe('node.NodeCache', () => {
       assert(cache.getCachedValue(context, time)).toNot.beDefined();
     });
 
-    it(`should do nothing if the time is before the latestTime`, () => {
+    should(`do nothing if the time is before the latestTime`, () => {
       const time0 = Time.new();
       const time1 = time0.increment();
       const value = 123;

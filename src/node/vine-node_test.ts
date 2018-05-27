@@ -1,4 +1,4 @@
-import { assert } from 'gs-testing/export/main';
+import { assert, should } from 'gs-testing/export/main';
 import { ImmutableSet } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType } from 'gs-types/export';
@@ -32,7 +32,7 @@ class TestNode extends VineNode<number> {
 
 describe('node.VineNode', () => {
   describe('getValue', () => {
-    it(`should compute the value correctly at latest time of the sources`, () => {
+    should(`compute the value correctly at latest time of the sources`, () => {
       const id = staticStreamId('id', NumberType);
       const time0 = Time.new();
       const time1 = time0.increment();
@@ -58,7 +58,7 @@ describe('node.VineNode', () => {
       assert(mockComputeValueHandler).to.haveBeenCalledWith(context, time1);
     });
 
-    it(`should return the cached value without recomputing if available`, () => {
+    should(`return the cached value without recomputing if available`, () => {
       const id = staticStreamId('id', NumberType);
       const time0 = Time.new();
       const time1 = time0.increment();
