@@ -46,8 +46,8 @@ export class VineImpl {
       throw new Error(`Node for ${nodeId} cannot be found`);
     }
 
-    const wrappedHandler = () => {
-      handler(node.getValue(context, this.requestQueue_.getTime()));
+    const wrappedHandler = async () => {
+      handler(await node.getValue(context, this.requestQueue_.getTime()));
     };
     const unlistenFns = node.getSources().mapItem(source => source.listen(wrappedHandler, context));
     wrappedHandler();

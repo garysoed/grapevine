@@ -20,11 +20,10 @@ export class StreamNode<T> extends VineNode<T> {
     super(initTime, id);
   }
 
-  protected computeValue_(context: BaseDisposable, time: Time): T {
-    // TODO: Promises.
+  protected async computeValue_(context: BaseDisposable, time: Time): Promise<T> {
     const args = this.dependencies_.map(dependency => dependency.getValue(context, time));
 
-    return this.fn_.apply(context, [...args]);
+    return this.fn_.apply(context, await Promise.all([...args]));
   }
 
   @cache()

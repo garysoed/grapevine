@@ -1,6 +1,6 @@
 import 'jasmine';
 
-import { assert, should } from 'gs-testing/export/main';
+import { assert, should, wait } from 'gs-testing/export/main';
 import { MockTime } from 'gs-testing/export/mock';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
@@ -15,12 +15,11 @@ describe('main.VineBuilder', () => {
 
   beforeEach(() => {
     mockTime = new MockTime();
-    mockTime.inject(window);
-    builder = new VineBuilder(window);
+    builder = new VineBuilder(mockTime.createWindow());
   });
 
   describe('source', () => {
-    should(`register the source correctly`, () => {
+    should(`register the source correctly`, async () => {
       const sourceId = instanceSourceId('sourceId', NumberType);
       const context = new BaseDisposable();
       const mockHandler = jasmine.createSpy('Handler');
@@ -36,12 +35,12 @@ describe('main.VineBuilder', () => {
         vine.setValue(sourceId, context, value);
       });
 
-      mockTime.at(1, () => {
-        assert(mockHandler).to.haveBeenCalledWith(initValue);
-        assert(mockHandler).to.haveBeenCalledWith(value);
+      mockTime.at(1, async () => {
+        await wait(mockHandler).to.haveBeenCalledWith(initValue);
+        await wait(mockHandler).to.haveBeenCalledWith(value);
       });
 
-      mockTime.run();
+      await mockTime.run();
     });
 
     should(`throw error if the source is already registered`, () => {
@@ -55,7 +54,7 @@ describe('main.VineBuilder', () => {
   });
 
   describe('stream', () => {
-    should(`set up the stream correctly`, () => {
+    should(`set up the stream correctly`, async () => {
       // Tree:
       // main ('27')
       // |- A (63)
@@ -105,16 +104,16 @@ describe('main.VineBuilder', () => {
       });
 
       // Set expectations.
-      mockTime.at(1, () => {
-        assert(mockMainHandler).to.haveBeenCalledWith('27');
-        assert(mockCHandler).to.haveBeenCalledWith(9);
-        assert(mockGHandler).to.haveBeenCalledWith(13);
+      mockTime.at(1, async () => {
+        await wait(mockMainHandler).to.haveBeenCalledWith('27');
+        await wait(mockCHandler).to.haveBeenCalledWith(9);
+        await wait(mockGHandler).to.haveBeenCalledWith(13);
       });
-      mockTime.at(3, () => {
-        assert(mockMainHandler).to.haveBeenCalledWith('63');
-        assert(mockGHandler).to.haveBeenCalledWith(15);
+      mockTime.at(3, async () => {
+        await wait(mockMainHandler).to.haveBeenCalledWith('63');
+        await wait(mockGHandler).to.haveBeenCalledWith(15);
       });
-      mockTime.run();
+      await mockTime.run();
     });
 
     should(`throw error if the stream is already registered`, () => {

@@ -6,16 +6,16 @@ import { Time } from '../component/time';
  */
 export class NodeCache<T> {
   // Map of context to Time to the value at that time.
-  private readonly cache_: Map<BaseDisposable, Map<Time, T>> = new Map();
+  private readonly cache_: Map<BaseDisposable, Map<Time, Promise<T>>> = new Map();
   private latestTime_: Time|null = null;
 
-  private getCacheByContext_(context: BaseDisposable): Map<Time, T> {
+  private getCacheByContext_(context: BaseDisposable): Map<Time, Promise<T>> {
     const cache = this.cache_.get(context);
     if (cache) {
       return cache;
     }
 
-    const newCache = new Map<Time, T>();
+    const newCache = new Map<Time, Promise<T>>();
     this.cache_.set(context, newCache);
     context.addDisposable(DisposableFunction.of(() => {
       this.cache_.delete(context);
@@ -24,7 +24,7 @@ export class NodeCache<T> {
     return newCache;
   }
 
-  getCachedValue(context: BaseDisposable, time: Time): T | undefined {
+  async getCachedValue(context: BaseDisposable, time: Time): Promise<T | undefined> {
     const timeCache = this.cache_.get(context);
     if (!timeCache) {
       return undefined;
@@ -50,12 +50,12 @@ export class NodeCache<T> {
     return latestCachedTime;
   }
 
-  setCachedValue(newValue: T, context: BaseDisposable, time: Time): void {
+  setCachedValue(newValue: Promise<T>, context: BaseDisposable, time: Time): void {
     if (this.latestTime_ && time.beforeOrEqualTo(this.latestTime_)) {
       return;
     }
 
-    const timeMap: Map<Time, T> = this.getCacheByContext_(context);
+    const timeMap = this.getCacheByContext_(context);
     timeMap.set(time, newValue);
     this.cache_.set(context, timeMap);
     this.latestTime_ = time;

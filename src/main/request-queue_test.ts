@@ -13,13 +13,12 @@ describe('main.RequestQueue', () => {
   beforeEach(() => {
     initTime = Time.new();
     mockTime = new MockTime();
-    mockTime.inject(window);
 
-    queue = new RequestQueue(initTime);
+    queue = new RequestQueue(initTime, mockTime.createWindow());
   });
 
   describe('queue', () => {
-    should(`queue and process the requests correctly`, () => {
+    should(`queue and process the requests correctly`, async () => {
       const mockRequest1 = jasmine.createSpy('Request1');
       const mockRequest2 = jasmine.createSpy('Request2');
       const mockRequest3 = jasmine.createSpy('Request3');
@@ -47,7 +46,7 @@ describe('main.RequestQueue', () => {
         assert(mockRequest3).to.haveBeenCalledWith(time2);
       });
 
-      mockTime.run();
+      await mockTime.run();
     });
   });
 });

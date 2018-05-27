@@ -19,7 +19,7 @@ export class SourceNode<T> extends VineNode<T> {
     super(initTime, id);
   }
 
-  protected computeValue_(context: BaseDisposable, time: Time): T {
+  protected async computeValue_(context: BaseDisposable, time: Time): Promise<T> {
     return this.initValue_;
   }
 
@@ -37,7 +37,7 @@ export class SourceNode<T> extends VineNode<T> {
   }
 
   setValue(newValue: T, context: BaseDisposable, time: Time): void {
-    this.setValue_(newValue, context, time);
+    this.nodeCache_.setCachedValue(Promise.resolve(newValue), context, time);
     for (const listener of this.listeners_.get(context) || new Set()) {
       listener(newValue);
     }

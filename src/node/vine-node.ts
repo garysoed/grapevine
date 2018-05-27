@@ -9,7 +9,7 @@ import { SourceNode } from './source-node';
  * Base class for all nodes in Grapevine.
  */
 export abstract class VineNode<T> {
-  private readonly nodeCache_: NodeCache<T>;
+  protected readonly nodeCache_: NodeCache<T>;
 
   constructor(
       private readonly initTime_: Time,
@@ -17,7 +17,7 @@ export abstract class VineNode<T> {
     this.nodeCache_ = new NodeCache();
   }
 
-  protected abstract computeValue_(context: BaseDisposable, time: Time): T;
+  protected abstract computeValue_(context: BaseDisposable, time: Time): Promise<T>;
 
   getId(): NodeId<T> {
     return this.id_;
@@ -25,7 +25,7 @@ export abstract class VineNode<T> {
 
   abstract getSources(): ImmutableSet<SourceNode<any>>;
 
-  getValue(context: BaseDisposable, time: Time): T {
+  async getValue(context: BaseDisposable, time: Time): Promise<T> {
     const sourcesLatestTime = this.getSources()
         .reduceItem((latestTime: Time, source: SourceNode<any>) => {
           const sourceTime = source.nodeCache_.getLatestCachedTimeBefore(context, time);
@@ -36,7 +36,7 @@ export abstract class VineNode<T> {
           }
         }, this.initTime_);
 
-    const cachedValue = this.nodeCache_.getCachedValue(context, sourcesLatestTime);
+    const cachedValue = await this.nodeCache_.getCachedValue(context, sourcesLatestTime);
     if (cachedValue !== undefined) {
       return cachedValue;
     }
@@ -45,9 +45,5 @@ export abstract class VineNode<T> {
     this.nodeCache_.setCachedValue(computedValue, context, sourcesLatestTime);
 
     return computedValue;
-  }
-
-  protected setValue_(newValue: T, context: BaseDisposable, time: Time): void {
-    this.nodeCache_.setCachedValue(newValue, context, time);
   }
 }

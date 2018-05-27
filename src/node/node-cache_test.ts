@@ -11,35 +11,35 @@ describe('node.NodeCache', () => {
   });
 
   describe('getCachedValue', () => {
-    should(`return the cached value if exist`, () => {
+    should(`resolve the cached value if exist`, async () => {
       const value = 123;
       const context = new BaseDisposable();
       const time = Time.new();
 
-      cache.setCachedValue(value, context, time);
-      assert(cache.getCachedValue(context, time)).to.be(value);
+      cache.setCachedValue(Promise.resolve(value), context, time);
+      assert(await cache.getCachedValue(context, time)).to.be(value);
     });
 
-    should(`return undefined if the value does not exist at the time`, () => {
+    should(`resolve undefined if the value does not exist at the time`, async () => {
       const value = 123;
       const context = new BaseDisposable();
       const time = Time.new();
 
-      cache.setCachedValue(value, context, time.increment());
-      assert(cache.getCachedValue(context, time)).toNot.beDefined();
+      cache.setCachedValue(Promise.resolve(value), context, time.increment());
+      assert(await cache.getCachedValue(context, time)).toNot.beDefined();
     });
 
-    should(`return undefined if the value does not exist at the context`, () => {
+    should(`resolve undefined if the value does not exist at the context`, async () => {
       const value = 123;
       const context = new BaseDisposable();
       const time = Time.new();
 
-      cache.setCachedValue(value, new BaseDisposable(), time);
-      assert(cache.getCachedValue(context, time)).toNot.beDefined();
+      cache.setCachedValue(Promise.resolve(value), new BaseDisposable(), time);
+      assert(await cache.getCachedValue(context, time)).toNot.beDefined();
     });
 
-    should(`return undefined if the cache is empty`, () => {
-      assert(cache.getCachedValue(new BaseDisposable(), Time.new())).toNot.beDefined();
+    should(`resolve undefined if the cache is empty`, async () => {
+      assert(await cache.getCachedValue(new BaseDisposable(), Time.new())).toNot.beDefined();
     });
   });
 
@@ -52,9 +52,9 @@ describe('node.NodeCache', () => {
 
       const context = new BaseDisposable();
 
-      cache.setCachedValue(0, context, time0);
-      cache.setCachedValue(1, context, time1);
-      cache.setCachedValue(3, context, time3);
+      cache.setCachedValue(Promise.resolve(0), context, time0);
+      cache.setCachedValue(Promise.resolve(1), context, time1);
+      cache.setCachedValue(Promise.resolve(3), context, time3);
 
       assert(cache.getLatestCachedTimeBefore(context, time2)).to.be(time1);
     });
@@ -65,7 +65,7 @@ describe('node.NodeCache', () => {
 
       const context = new BaseDisposable();
 
-      cache.setCachedValue(1, context, time1);
+      cache.setCachedValue(Promise.resolve(1), context, time1);
 
       assert(cache.getLatestCachedTimeBefore(context, time0)).to.beNull();
     });
@@ -74,7 +74,7 @@ describe('node.NodeCache', () => {
       const time0 = Time.new();
       const context = new BaseDisposable();
 
-      cache.setCachedValue(1, context, time0);
+      cache.setCachedValue(Promise.resolve(1), context, time0);
 
       assert(cache.getLatestCachedTimeBefore(new BaseDisposable(), time0)).to.beNull();
     });
@@ -87,34 +87,34 @@ describe('node.NodeCache', () => {
   });
 
   describe('setCachedValue', () => {
-    should(`set the value correctly`, () => {
+    should(`set the value correctly`, async () => {
       const time = Time.new();
       const value = 123;
       const context = new BaseDisposable();
 
-      cache.setCachedValue(value, context, time);
-      assert(cache.getCachedValue(context, time)).to.be(value);
+      cache.setCachedValue(Promise.resolve(value), context, time);
+      assert(await cache.getCachedValue(context, time)).to.be(value);
     });
 
-    should(`clear the cache if the context is disposed`, () => {
+    should(`clear the cache if the context is disposed`, async () => {
       const time = Time.new();
       const context = new BaseDisposable();
 
-      cache.setCachedValue(123, context, time);
+      cache.setCachedValue(Promise.resolve(123), context, time);
       context.dispose();
-      assert(cache.getCachedValue(context, time)).toNot.beDefined();
+      assert(await cache.getCachedValue(context, time)).toNot.beDefined();
     });
 
-    should(`do nothing if the time is before the latestTime`, () => {
+    should(`do nothing if the time is before the latestTime`, async () => {
       const time0 = Time.new();
       const time1 = time0.increment();
       const value = 123;
       const context = new BaseDisposable();
 
-      cache.setCachedValue(value, context, time1);
-      cache.setCachedValue(456, context, time0);
+      cache.setCachedValue(Promise.resolve(value), context, time1);
+      cache.setCachedValue(Promise.resolve(456), context, time0);
 
-      assert(cache.getCachedValue(context, time0)).toNot.beDefined();
+      assert(await cache.getCachedValue(context, time0)).toNot.beDefined();
     });
   });
 });

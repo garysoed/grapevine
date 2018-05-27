@@ -1,4 +1,5 @@
 import { assert, should } from 'gs-testing/export/main';
+import { fshould } from 'gs-testing/src/main/run';
 import { ImmutableList } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType } from 'gs-types/export';
@@ -38,7 +39,7 @@ describe('node.StreamNode', () => {
   });
 
   describe('getValue', () => {
-    should(`compute the value correctly`, () => {
+    should(`compute the value correctly`, async () => {
       const time = Time.new();
       const sourceNodeA = new SourceNode(instanceSourceId('a', NumberType), time, 2);
       const sourceNodeB = new SourceNode(instanceSourceId('b', NumberType), time, 3);
@@ -49,7 +50,21 @@ describe('node.StreamNode', () => {
           (a, b) => a * b,
           ImmutableList.of([sourceNodeA, sourceNodeB]));
 
-      assert(node.getValue(new BaseDisposable(), time)).to.be(6);
+      assert(await node.getValue(new BaseDisposable(), time)).to.be(6);
+    });
+
+    should(`handle promises correctly`, async () => {
+      const time = Time.new();
+      const sourceNodeA = new SourceNode(instanceSourceId('a', NumberType), time, 2);
+      const sourceNodeB = new SourceNode(instanceSourceId('b', NumberType), time, 3);
+
+      const node = new StreamNode(
+          staticStreamId('id', NumberType),
+          Time.new(),
+          async (a, b) => a * b,
+          ImmutableList.of([sourceNodeA, sourceNodeB]));
+
+      assert(await node.getValue(new BaseDisposable(), time)).to.be(6);
     });
   });
 });
