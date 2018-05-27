@@ -21,7 +21,7 @@ class TestNode extends VineNode<number> {
     super(initTime, id);
   }
 
-  computeValue_(context: BaseDisposable, time: Time): Promise<number> {
+  async computeValue_(context: BaseDisposable, time: Time): Promise<number> {
     return this.computeValueHandler_(context, time);
   }
 

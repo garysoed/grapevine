@@ -50,6 +50,8 @@ export class VineImpl {
       handler(await node.getValue(context, this.requestQueue_.getTime()));
     };
     const unlistenFns = node.getSources().mapItem(source => source.listen(wrappedHandler, context));
+
+    // tslint:disable-next-line:no-floating-promises
     wrappedHandler();
 
     return () => {

@@ -2,7 +2,6 @@ import 'jasmine';
 
 import { assert, should, wait } from 'gs-testing/export/main';
 import { MockTime } from 'gs-testing/export/mock';
-import { fshould } from 'gs-testing/src/main/run';
 import { ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType } from 'gs-types/export';
@@ -79,9 +78,9 @@ describe('main.VineImpl', () => {
         vine.setValue(sourceId, context, 4);
       });
 
-      mockTime.at(0, () => wait(mockHandler).to.haveBeenCalledWith(1));
-      mockTime.at(2, () => wait(mockHandler).to.haveBeenCalledWith(4));
-      mockTime.at(4, () => wait(mockHandler).toNot.haveBeenCalledWith(16));
+      mockTime.at(0, async () => wait(mockHandler).to.haveBeenCalledWith(1));
+      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(4));
+      mockTime.at(4, async () => wait(mockHandler).toNot.haveBeenCalledWith(16));
       await mockTime.run();
     });
 
@@ -119,7 +118,7 @@ describe('main.VineImpl', () => {
 
       mockTime.at(1, () => vine.setValue(id, context, value));
 
-      mockTime.at(2, () => wait(mockHandler).to.haveBeenCalledWith(value));
+      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(value));
       await mockTime.run();
     });
 
