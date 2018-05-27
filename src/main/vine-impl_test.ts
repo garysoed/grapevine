@@ -36,12 +36,12 @@ describe('main.VineImpl', () => {
           mockTime.createWindow());
 
       const mockHandler = jasmine.createSpy('Handler');
-      const unlistenFn = vine.listen(id, context, mockHandler);
+      const unlistenFn = vine.listen(id, mockHandler);
 
-      mockTime.at(1, () => vine.setValue(id, context, newValue));
+      mockTime.at(1, () => vine.setValue(id, newValue));
       mockTime.at(3, () => {
         unlistenFn();
-        vine.setValue(id, context, newerValue);
+        vine.setValue(id, newerValue);
       });
 
       mockTime.at(0, async () => wait(mockHandler).to.haveBeenCalledWith(initValue));
@@ -71,11 +71,11 @@ describe('main.VineImpl', () => {
           ImmutableMap.of([[id, streamNode]]),
           mockTime.createWindow());
 
-      const unlistenFn = vine.listen(id, context, mockHandler);
-      mockTime.at(1, () => vine.setValue(sourceId, context, 2));
+      const unlistenFn = vine.listen(id, mockHandler);
+      mockTime.at(1, () => vine.setValue(sourceId, 2));
       mockTime.at(3, () => {
         unlistenFn();
-        vine.setValue(sourceId, context, 4);
+        vine.setValue(sourceId, 4);
       });
 
       mockTime.at(0, async () => wait(mockHandler).to.haveBeenCalledWith(1));
@@ -94,7 +94,7 @@ describe('main.VineImpl', () => {
           mockTime.createWindow());
 
       assert(() => {
-        vine.listen(nodeId, context, () => undefined);
+        vine.listen(nodeId, () => undefined);
       }).to.throwError(/cannot be found/);
     });
   });
@@ -114,9 +114,9 @@ describe('main.VineImpl', () => {
           mockTime.createWindow());
 
       const mockHandler = jasmine.createSpy('Handler');
-      vine.listen(id, context, mockHandler);
+      vine.listen(id, mockHandler);
 
-      mockTime.at(1, () => vine.setValue(id, context, value));
+      mockTime.at(1, () => vine.setValue(id, value));
 
       mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(value));
       await mockTime.run();
@@ -132,7 +132,7 @@ describe('main.VineImpl', () => {
           mockTime.createWindow());
 
       assert(() => {
-        vine.setValue(nodeId, context, 12);
+        vine.setValue(nodeId, 12);
       }).to.throwError(/cannot be found/);
     });
   });

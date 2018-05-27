@@ -5,7 +5,7 @@ import { UnionType } from 'gs-types/src/union-type';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';
 import { NodeId } from '../component/node-id';
-import { Provider } from '../component/provider';
+import { Provider, Provider0, Provider1, Provider2, Provider3 } from '../component/provider';
 import { SourceId } from '../component/source-id';
 import { StaticSourceId } from '../component/static-source-id';
 import { StaticStreamId } from '../component/static-stream-id';
@@ -159,10 +159,39 @@ export class VineBuilder {
     this.registeredSources_.set(nodeId, sourceRegistrationNode);
   }
 
-  stream<T>(
-      nodeId: StreamId<T>,
-      provider: Provider<T>,
-      ...args: NodeId<any>[]): void {
+  stream<T, P0>(
+      nodeId: StaticStreamId<T>,
+      provider: Provider1<T, P0>,
+      arg0: StaticStreamId<P0> | StaticSourceId<P0>): void;
+  stream<T, P0, P1>(
+      nodeId: StaticStreamId<T>,
+      provider: Provider2<T, P0, P1>,
+      arg0: StaticStreamId<P0> | StaticSourceId<P0>,
+      arg1: StaticStreamId<P1> | StaticSourceId<P1>): void;
+  stream<T, P0, P1, P2>(
+      nodeId: StaticStreamId<T>,
+      provider: Provider3<T, P0, P1, P2>,
+      arg0: StaticStreamId<P0> | StaticSourceId<P0>,
+      arg1: StaticStreamId<P1> | StaticSourceId<P1>,
+      arg2: StaticStreamId<P2> | StaticSourceId<P2>): void;
+
+  stream<T, P0>(
+      nodeId: InstanceStreamId<T>,
+      provider: Provider1<T, P0>,
+      arg0: NodeId<P0>): void;
+  stream<T, P0, P1>(
+      nodeId: InstanceStreamId<T>,
+      provider: Provider2<T, P0, P1>,
+      arg0: NodeId<P0>,
+      arg1: NodeId<P1>): void;
+  stream<T, P0, P1, P2>(
+      nodeId: InstanceStreamId<T>,
+      provider: Provider3<T, P0, P1, P2>,
+      arg0: NodeId<P0>,
+      arg1: NodeId<P1>,
+      arg2: NodeId<P2>): void;
+
+  stream<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: NodeId<any>[]): void {
     const streamRegistration = new StreamRegistrationNode(
         this.currentTime_, nodeId, provider, args);
     if (this.registeredStreams_.has(nodeId)) {

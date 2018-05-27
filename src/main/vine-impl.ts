@@ -8,6 +8,7 @@ import { StaticSourceId } from '../component/static-source-id';
 import { StaticStreamId } from '../component/static-stream-id';
 import { StreamId } from '../component/stream-id';
 import { Time } from '../component/time';
+import { GLOBAL_CONTEXT } from '../node/global-context';
 import { Listener } from '../node/listener';
 import { SourceNode } from '../node/source-node';
 import { StreamNode } from '../node/stream-node';
@@ -40,7 +41,15 @@ export class VineImpl {
     return null;
   }
 
-  listen<T>(nodeId: NodeId<T>, context: BaseDisposable, handler: Listener<T>): () => void {
+  listen<T>(
+      nodeId: InstanceSourceId<T> | InstanceStreamId<T>,
+      handler: Listener<T>,
+      context: BaseDisposable): () => void;
+  listen<T>(nodeId: StaticSourceId<T> | StaticStreamId<T>, handler: Listener<T>): () => void;
+  listen<T>(
+      nodeId: NodeId<T>,
+      handler: Listener<T>,
+      context: BaseDisposable = GLOBAL_CONTEXT): () => void {
     const node = this.getNode_(nodeId);
     if (!node) {
       throw new Error(`Node for ${nodeId} cannot be found`);
@@ -61,7 +70,9 @@ export class VineImpl {
     };
   }
 
-  setValue<T>(sourceId: SourceId<T>, context: BaseDisposable, newValue: T): void {
+  setValue<T>(sourceId: StaticSourceId<T>, newValue: T): void;
+  setValue<T>(sourceId: InstanceSourceId<T>, newValue: T, context: BaseDisposable): void;
+  setValue<T>(sourceId: SourceId<T>, newValue: T, context: BaseDisposable = GLOBAL_CONTEXT): void {
     const sourceNode = this.sourceMap_.get(sourceId);
     if (!sourceNode) {
       throw new Error(`Source node for ${sourceId} cannot be found`);

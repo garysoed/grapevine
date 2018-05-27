@@ -31,8 +31,8 @@ describe('main.VineBuilder', () => {
       const vine = builder.run();
 
       mockTime.at(0, () => {
-        vine.listen(sourceId, context, mockHandler);
-        vine.setValue(sourceId, context, value);
+        vine.listen(sourceId, mockHandler, context);
+        vine.setValue(sourceId, value, context);
       });
 
       mockTime.at(1, async () => {
@@ -94,13 +94,13 @@ describe('main.VineBuilder', () => {
 
       // Set events.
       mockTime.at(0, () => {
-        vine.listen(mainId, context, mockMainHandler);
-        vine.listen(cId, context, mockCHandler);
-        vine.listen(gId, context, mockGHandler);
+        vine.listen(mainId, mockMainHandler, context);
+        vine.listen(cId, mockCHandler, context);
+        vine.listen(gId, mockGHandler, context);
       });
       mockTime.at(2, () => {
-        vine.setValue(dId, context, 5);
-        vine.setValue(hId, context, 6);
+        vine.setValue(dId, 5, context);
+        vine.setValue(hId, 6, context);
       });
 
       // Set expectations.
