@@ -84,5 +84,26 @@ describe('node.VineNode', () => {
       assert(await node.getValue(context, time2)).to.be(value);
       assert(mockComputeValueHandler).toNot.haveBeenCalled();
     });
+
+    should(`throw error if the return value is of the wrong type`, async () => {
+      const id = staticStreamId('id', NumberType);
+      const time0 = Time.new();
+      const time1 = time0.increment();
+      const context = new BaseDisposable();
+
+      const sourceNode = new SourceNode(staticSourceId('sourceId', NumberType), time0, 1);
+      sourceNode.setValue(3, context, time1);
+
+      const mockComputeValueHandler = jasmine.createSpy('ComputeValueHandler');
+      mockComputeValueHandler.and.returnValue('value');
+
+      const node = new TestNode(
+          time0,
+          id,
+          mockComputeValueHandler,
+          ImmutableSet.of([sourceNode]));
+
+      await assert(node.getValue(context, time1)).to.rejectWithError(/Return type of value/);
+    });
   });
 });

@@ -1,5 +1,6 @@
 import { ImmutableSet } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
+import { Errors } from 'gs-tools/export/error';
 import { NodeId } from '../component/node-id';
 import { Time } from '../component/time';
 import { NodeCache } from './node-cache';
@@ -41,9 +42,15 @@ export abstract class VineNode<T> {
       return cachedValue;
     }
 
-    const computedValue = this.computeValue_(context, sourcesLatestTime);
-    this.nodeCache_.setCachedValue(computedValue, context, sourcesLatestTime);
+    const computedValuePromise = this.computeValue_(context, sourcesLatestTime);
+    this.nodeCache_.setCachedValue(computedValuePromise, context, sourcesLatestTime);
 
-    return computedValue;
+    const computedValue = await computedValuePromise;
+    const type = this.id_.getType();
+    if (!type.check(computedValue)) {
+      throw Errors.assert(`Return type of value ${this.id_}`).shouldBeA(type).butWas(computedValue);
+    }
+
+    return computedValuePromise;
   }
 }
