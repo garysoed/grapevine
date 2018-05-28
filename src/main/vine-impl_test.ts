@@ -3,7 +3,6 @@ import 'jasmine';
 import { assert, should, wait } from 'gs-testing/export/main';
 import { MockTime } from 'gs-testing/export/mock';
 import { ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
-import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType } from 'gs-types/export';
 import { staticSourceId } from '../component/static-source-id';
 import { staticStreamId } from '../component/static-stream-id';
@@ -28,7 +27,6 @@ describe('main.VineImpl', () => {
       const newerValue = 4;
       const sourceNode = new SourceNode(id, time, initValue);
 
-      const context = new BaseDisposable();
       const vine = new VineImpl(
           time,
           ImmutableMap.of([[id, sourceNode]]),
@@ -62,7 +60,6 @@ describe('main.VineImpl', () => {
           v => v * v,
           ImmutableList.of([sourceNode]));
 
-      const context = new BaseDisposable();
       const mockHandler = jasmine.createSpy('Handler');
 
       const vine = new VineImpl(
@@ -86,7 +83,6 @@ describe('main.VineImpl', () => {
 
     should(`throw error if the node cannot be found`, () => {
       const nodeId = staticSourceId('sourceId', NumberType);
-      const context = new BaseDisposable();
       const vine = new VineImpl(
           Time.new(),
           ImmutableMap.of(),
@@ -106,7 +102,6 @@ describe('main.VineImpl', () => {
       const value = 2;
       const sourceNode = new SourceNode(id, time, 1);
 
-      const context = new BaseDisposable();
       const vine = new VineImpl(
           time,
           ImmutableMap.of([[id, sourceNode]]),
@@ -124,7 +119,6 @@ describe('main.VineImpl', () => {
 
     should(`throw error if the node cannot be found`, () => {
       const nodeId = staticSourceId('sourceId', NumberType);
-      const context = new BaseDisposable();
       const vine = new VineImpl(
           Time.new(),
           ImmutableMap.of(),

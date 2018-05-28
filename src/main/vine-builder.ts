@@ -5,7 +5,7 @@ import { UnionType } from 'gs-types/src/union-type';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';
 import { NodeId } from '../component/node-id';
-import { Provider, Provider0, Provider1, Provider2, Provider3 } from '../component/provider';
+import { Provider, Provider1, Provider2, Provider3 } from '../component/provider';
 import { SourceId } from '../component/source-id';
 import { StaticSourceId } from '../component/static-source-id';
 import { StaticStreamId } from '../component/static-stream-id';
@@ -192,6 +192,10 @@ export class VineBuilder {
       arg2: NodeId<P2>): void;
 
   stream<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: NodeId<any>[]): void {
+    this.stream_(nodeId, provider, ...args);
+  }
+
+  stream_<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: NodeId<any>[]): void {
     const streamRegistration = new StreamRegistrationNode(
         this.currentTime_, nodeId, provider, args);
     if (this.registeredStreams_.has(nodeId)) {
