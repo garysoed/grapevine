@@ -5,9 +5,9 @@ import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
 import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
-import { getBuilder } from '../main/vine';
-import { vineIn } from './vine-in';
-import { vineOut } from './vine-out';
+import { getOrRegisterApp } from '../main/vine';
+
+const {builder, vineIn, vineOut} = getOrRegisterApp('test');
 
 describe('annotation.vineOut', () => {
   let mockTime: MockTime;
@@ -63,7 +63,6 @@ describe('annotation.vineOut', () => {
       }
     }
 
-    const builder = getBuilder();
     builder.source(dId, 1);
     builder.source(eId, 2);
     builder.source(fId, 3);

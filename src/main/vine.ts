@@ -1,7 +1,36 @@
+import { Annotations } from 'gs-tools/export/data';
+import { VineIn, VineInData, vineInFactory } from '../annotation/vine-in';
+import { VineOut, vineOutFactory } from '../annotation/vine-out';
 import { VineBuilder } from './vine-builder';
 
-const builder: VineBuilder = new VineBuilder();
+/**
+ * Represents handlers for a Grapevine app.
+ */
+export interface VineApp {
+  builder: VineBuilder;
+  vineIn: VineIn;
+  vineOut: VineOut;
+}
 
-export function getBuilder(): VineBuilder {
-  return builder;
+const apps = new Map<string, VineApp>();
+
+/**
+ * Gets or register a Grapevine app.
+ */
+export function getOrRegisterApp(appName: string): VineApp {
+  const createdApp = apps.get(appName);
+  if (createdApp) {
+    return createdApp;
+  }
+
+  const annotationsCache = new Annotations<VineInData>(Symbol(appName));
+  const builder = new VineBuilder();
+  const newApp = {
+    builder,
+    vineIn: vineInFactory(annotationsCache),
+    vineOut: vineOutFactory(annotationsCache, builder),
+  };
+  apps.set(appName, newApp);
+
+  return newApp;
 }
