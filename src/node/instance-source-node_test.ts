@@ -3,16 +3,16 @@ import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType } from 'gs-types/export';
 import { instanceSourceId } from '../component/instance-source-id';
 import { Time } from '../component/time';
-import { SourceNode } from './source-node';
+import { InstanceSourceNode } from './instance-source-node';
 
-describe('node.SourceNode', () => {
+describe('node.InstanceSourceNode', () => {
   const ID = instanceSourceId('id', NumberType);
   const VALUE = 123;
   const TIME = Time.new();
-  let node: SourceNode<number>;
+  let node: InstanceSourceNode<number>;
 
   beforeEach(() => {
-    node = new SourceNode(ID, TIME, VALUE);
+    node = new InstanceSourceNode(ID, TIME, VALUE);
   });
 
   describe('getSources', () => {

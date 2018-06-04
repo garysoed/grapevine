@@ -9,11 +9,17 @@ import { StaticStreamId } from '../component/static-stream-id';
 import { StreamId } from '../component/stream-id';
 import { Time } from '../component/time';
 import { GLOBAL_CONTEXT } from '../node/global-context';
+import { InstanceNode } from '../node/instance-node';
+import { InstanceSourceNode } from '../node/instance-source-node';
+import { InstanceStreamNode } from '../node/instance-stream-node';
 import { Listener } from '../node/listener';
 import { SourceNode } from '../node/source-node';
-import { StreamNode } from '../node/stream-node';
-import { VineNode } from '../node/vine-node';
+import { StaticNode } from '../node/static-node';
+import { StaticStreamNode } from '../node/static-stream-node';
 import { RequestQueue } from './request-queue';
+
+type AnyNode<T> = StaticNode<T>|InstanceNode<T>;
+type StreamNode<T> = InstanceStreamNode<T>|StaticStreamNode<T>;
 
 /**
  * Runtime implementation of Grapevine.
@@ -29,7 +35,7 @@ export class VineImpl {
     this.requestQueue_ = new RequestQueue(time, window);
   }
 
-  private getNode_<T>(nodeId: NodeId<T>): VineNode<T>|null {
+  private getNode_<T>(nodeId: NodeId<T>): AnyNode<T>|null {
     if (nodeId instanceof StaticSourceId || nodeId instanceof InstanceSourceId) {
       return this.sourceMap_.get(nodeId) || null;
     }
@@ -56,9 +62,21 @@ export class VineImpl {
     }
 
     const wrappedHandler = async () => {
-      handler(await node.getValue(context, this.requestQueue_.getTime()));
+      const time = this.requestQueue_.getTime();
+      if (node instanceof InstanceNode) {
+        handler(await node.getValue(context, time));
+      } else {
+        handler(await node.getValue(time));
+      }
     };
-    const unlistenFns = node.getSources().mapItem(source => source.listen(wrappedHandler, context));
+    const unlistenFns = node.getSources()
+        .mapItem(source => {
+          if (source instanceof InstanceSourceNode) {
+            return source.listen(wrappedHandler, context);
+          } else {
+            return source.listen(wrappedHandler);
+          }
+        });
 
     // tslint:disable-next-line:no-floating-promises
     wrappedHandler();
@@ -78,6 +96,10 @@ export class VineImpl {
       throw new Error(`Source node for ${sourceId} cannot be found`);
     }
 
-    this.requestQueue_.queue(time => sourceNode.setValue(newValue, context, time));
+    if (sourceNode instanceof InstanceSourceNode) {
+      this.requestQueue_.queue(time => sourceNode.setValue(newValue, context, time));
+    } else {
+      this.requestQueue_.queue(time => sourceNode.setValue(newValue, time));
+    }
   }
 }

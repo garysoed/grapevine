@@ -1,6 +1,6 @@
-import { ImmutableMap } from 'gs-tools/export/collect';
+import { ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
 import { Errors } from 'gs-tools/export/error';
-import { InstanceofType } from 'gs-types/export';
+import { InstanceofType, IterableOfType } from 'gs-types/export';
 import { UnionType } from 'gs-types/src/union-type';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';
@@ -11,20 +11,28 @@ import { StaticSourceId } from '../component/static-source-id';
 import { StaticStreamId } from '../component/static-stream-id';
 import { StreamId } from '../component/stream-id';
 import { Time } from '../component/time';
+import { InstanceSourceNode } from '../node/instance-source-node';
+import { InstanceStreamNode } from '../node/instance-stream-node';
 import { SourceNode } from '../node/source-node';
-import { StreamNode } from '../node/stream-node';
+import { StaticNode } from '../node/static-node';
+import { StaticSourceNode } from '../node/static-source-node';
+import { StaticStreamNode } from '../node/static-stream-node';
 import { SourceRegistrationNode } from '../registration/source-registration-node';
 import { StreamRegistrationNode } from '../registration/stream-registration-node';
 import { VineImpl } from './vine-impl';
 
-const StreamIdType = UnionType<StreamId<any>>([
+type StreamNode<T> = InstanceStreamNode<T>|StaticStreamNode<T>;
+
+const streamIdType = UnionType<StreamId<any>>([
   InstanceofType(InstanceStreamId),
   InstanceofType(StaticStreamId),
 ]);
-const SourceIdType = UnionType<SourceId<any>>([
+const sourceIdType = UnionType<SourceId<any>>([
   InstanceofType(InstanceSourceId),
   InstanceofType(StaticSourceId),
 ]);
+const staticStreamDependencyType = IterableOfType<StaticNode<any>, ImmutableList<StaticNode<any>>>(
+   InstanceofType(StaticNode));
 
 /**
  * Represents a node in the stream tree. Used for running topological sort of the stream tree.
@@ -45,7 +53,7 @@ function sortRegistrationMap(registrationMap: Map<StreamId<any>, StreamRegistrat
 
     // Add the dependencies.
     for (const childId of registration.getDependencies()) {
-      if (!StreamIdType.check(childId)) {
+      if (!streamIdType.check(childId)) {
         continue;
       }
 
@@ -107,12 +115,24 @@ export class VineBuilder {
 
   constructor(private readonly window_: Window = window) { }
 
+  private createSourceNode_(
+      sourceId: InstanceSourceId<any>|StaticSourceId<any>,
+      registration: SourceRegistrationNode<any>): SourceNode<any> {
+    if (sourceId instanceof InstanceSourceId) {
+      return new InstanceSourceNode(sourceId, this.currentTime_, registration.getInitValue());
+    } else {
+      return new StaticSourceNode(sourceId, this.currentTime_, registration.getInitValue());
+    }
+  }
+
+  genericStream<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: NodeId<any>[]): void {
+    this.stream_(nodeId, provider, ...args);
+  }
+
   run(): VineImpl {
     const sourceMap = new Map<SourceId<any>, SourceNode<any>>();
     for (const [sourceId, registration] of this.registeredSources_) {
-      sourceMap.set(
-          sourceId,
-          new SourceNode(sourceId, this.currentTime_, registration.getInitValue()));
+      sourceMap.set(sourceId, this.createSourceNode_(sourceId, registration));
     }
 
     const sortedStreams = sortRegistrationMap(this.registeredStreams_);
@@ -121,11 +141,11 @@ export class VineBuilder {
       const dependencyNodes = registration.getDependencies()
           .mapItem(id => {
             let dependency = null;
-            if (SourceIdType.check(id)) {
+            if (sourceIdType.check(id)) {
               dependency = sourceMap.get(id);
             }
 
-            if (StreamIdType.check(id)) {
+            if (streamIdType.check(id)) {
               dependency = streamMap.get(id);
             }
 
@@ -135,11 +155,26 @@ export class VineBuilder {
 
             return dependency;
           });
-      const streamNode = new StreamNode(
-          streamId,
-          this.currentTime_,
-          registration.getProvider(),
-          dependencyNodes);
+
+      let streamNode;
+      if (streamId instanceof InstanceStreamId) {
+        streamNode = new InstanceStreamNode(
+            streamId,
+            this.currentTime_,
+            registration.getProvider(),
+            dependencyNodes);
+      } else {
+        if (!staticStreamDependencyType.check(dependencyNodes)) {
+          throw Errors.assert(`Dependencies of [${streamId}]`)
+              .shouldBeA(staticStreamDependencyType).butWas(dependencyNodes);
+        }
+
+        streamNode = new StaticStreamNode(
+            streamId,
+            this.currentTime_,
+            registration.getProvider(),
+            dependencyNodes);
+      }
       streamMap.set(streamId, streamNode);
     }
 

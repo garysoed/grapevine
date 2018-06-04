@@ -39,14 +39,5 @@ module.exports = {
 
   watch: true,
 
-  plugins: [
-    new UglifyJsPlugin({
-      uglifyOptions: {
-        keep_classnames: true,
-        keep_fnames: true,
-        mangle: false,
-      },
-      sourceMap: true,
-    }),
-  ]
+  plugins: [],
 };

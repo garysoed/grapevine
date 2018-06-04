@@ -6,6 +6,7 @@ import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
 import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
+import { staticSourceId } from '../component/static-source-id';
 import { staticStreamId } from '../component/static-stream-id';
 import { VineBuilder } from './vine-builder';
 
@@ -68,10 +69,10 @@ describe('main.VineBuilder', () => {
       // |- H (4)
       const mainId = instanceStreamId('main', StringType);
       const aId = instanceStreamId('a', NumberType);
-      const bId = instanceStreamId('b', NumberType);
+      const bId = staticStreamId('b', NumberType);
       const cId = instanceStreamId('c', NumberType);
-      const dId = instanceSourceId('d', NumberType);
-      const eId = instanceSourceId('e', NumberType);
+      const dId = staticSourceId('d', NumberType);
+      const eId = staticSourceId('e', NumberType);
       const fId = instanceSourceId('f', NumberType);
       const gId = instanceStreamId('g', NumberType);
       const hId = instanceSourceId('h', NumberType);
@@ -99,7 +100,7 @@ describe('main.VineBuilder', () => {
         vine.listen(gId, mockGHandler, context);
       });
       mockTime.at(2, () => {
-        vine.setValue(dId, 5, context);
+        vine.setValue(dId, 5);
         vine.setValue(hId, 6, context);
       });
 
