@@ -186,6 +186,31 @@ describe('main.VineImpl', () => {
       await mockTime.run();
     });
 
+    should(`not set the value for static source nodes if they are the same`, async () => {
+      const time = Time.new();
+      const id = staticSourceId('id', NumberType);
+      const value = 2;
+      const sourceNode = new StaticSourceNode(id, time, () => 1);
+      const mockHandler = jasmine.createSpy('Handler');
+
+      const vine = new VineImpl(
+          time,
+          ImmutableMap.of([[id, sourceNode]]),
+          ImmutableMap.of(),
+          mockTime.createWindow());
+
+      mockTime.at(1, () => vine.setValue(id, value));
+      mockTime.at(2, () => {
+        vine.listen(id, mockHandler);
+        vine.setValue(id, value);
+      });
+
+      mockTime.at(3, () => {
+        assert(mockHandler).toNot.haveBeenCalled();
+      });
+      await mockTime.run();
+    });
+
     should(`set the value correctly for instance source nodes`, async () => {
       const time = Time.new();
       const id = instanceSourceId('id', NumberType);
@@ -205,6 +230,32 @@ describe('main.VineImpl', () => {
       mockTime.at(1, () => vine.setValue(id, value, context));
 
       mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(value));
+      await mockTime.run();
+    });
+
+    should(`not set the value for instance source nodes if they are the same`, async () => {
+      const time = Time.new();
+      const id = instanceSourceId('id', NumberType);
+      const value = 2;
+      const sourceNode = new InstanceSourceNode(id, time, () => 1);
+      const context = new BaseDisposable();
+      const mockHandler = jasmine.createSpy('Handler');
+
+      const vine = new VineImpl(
+          time,
+          ImmutableMap.of([[id, sourceNode]]),
+          ImmutableMap.of(),
+          mockTime.createWindow());
+
+      mockTime.at(1, () => vine.setValue(id, value, context));
+      mockTime.at(2, () => {
+        vine.listen(id, mockHandler, context);
+        vine.setValue(id, value, context);
+      });
+
+      mockTime.at(3, () => {
+        assert(mockHandler).toNot.haveBeenCalled();
+      });
       await mockTime.run();
     });
 

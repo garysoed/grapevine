@@ -116,9 +116,21 @@ export class VineImpl {
     }
 
     if (sourceNode instanceof InstanceSourceNode) {
-      this.requestQueue_.queue(time => sourceNode.setValue(newValue, context, time));
+      this.requestQueue_.queue(async time => {
+        const latestTime = sourceNode.getLatestCachedTimeBefore(context, time);
+        const latestValue = await sourceNode.getValue(context, time);
+        if (latestValue !== newValue) {
+          sourceNode.setValue(newValue, context, time);
+        }
+      });
     } else {
-      this.requestQueue_.queue(time => sourceNode.setValue(newValue, time));
+      this.requestQueue_.queue(async time => {
+        const latestTime = sourceNode.getLatestCachedTimeBefore(time);
+        const latestValue = await sourceNode.getValue(time);
+        if (latestValue !== newValue) {
+          sourceNode.setValue(newValue, time);
+        }
+      });
     }
   }
 }
