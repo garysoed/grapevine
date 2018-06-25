@@ -36,13 +36,16 @@ describe('node.StaticNode', () => {
       const time1 = time0.increment();
       const time2 = time1.increment();
 
-      const sourceNode = new StaticSourceNode(staticSourceId('sourceId', NumberType), time0, 1);
+      const sourceNode = new StaticSourceNode(
+          staticSourceId('sourceId', NumberType),
+          time0,
+          () => 1);
       sourceNode.setValue(3, time1);
 
       const futureSourceNode = new StaticSourceNode(
           staticSourceId('emptyId', NumberType),
           time2,
-          2);
+          () => 2);
 
       const value = 123;
       const mockComputeValueHandler = jasmine.createSpy('ComputeValueHandler');
@@ -61,7 +64,10 @@ describe('node.StaticNode', () => {
       const time1 = time0.increment();
       const time2 = time1.increment();
 
-      const sourceNode = new StaticSourceNode(staticSourceId('sourceId', NumberType), time0, 1);
+      const sourceNode = new StaticSourceNode(
+          staticSourceId('sourceId', NumberType),
+          time0,
+          () => 1);
       sourceNode.setValue(3, time1);
 
       const value = 123;
@@ -83,7 +89,10 @@ describe('node.StaticNode', () => {
       const time0 = Time.new();
       const time1 = time0.increment();
 
-      const sourceNode = new StaticSourceNode(staticSourceId('sourceId', NumberType), time0, 1);
+      const sourceNode = new StaticSourceNode(
+          staticSourceId('sourceId', NumberType),
+          time0,
+          () => 1);
       sourceNode.setValue(3, time1);
 
       const mockComputeValueHandler = jasmine.createSpy('ComputeValueHandler');

@@ -25,9 +25,9 @@ describe('node.StaticStreamNode', () => {
       const idD = staticSourceId('d', NumberType);
       const idE = staticSourceId('e', NumberType);
 
-      const nodeC = new StaticSourceNode(idC, time, 1);
-      const nodeD = new StaticSourceNode(idD, time, 2);
-      const nodeE = new StaticSourceNode(idE, time, 3);
+      const nodeC = new StaticSourceNode(idC, time, () => 1);
+      const nodeD = new StaticSourceNode(idD, time, () => 2);
+      const nodeE = new StaticSourceNode(idE, time, () => 3);
       const nodeB = new StaticStreamNode(
           idB,
           time,
@@ -46,8 +46,8 @@ describe('node.StaticStreamNode', () => {
   describe('getValue', () => {
     should(`compute the value correctly`, async () => {
       const time = Time.new();
-      const sourceNodeA = new StaticSourceNode(staticSourceId('a', NumberType), time, 2);
-      const sourceNodeB = new StaticSourceNode(staticSourceId('b', NumberType), time, 3);
+      const sourceNodeA = new StaticSourceNode(staticSourceId('a', NumberType), time, () => 2);
+      const sourceNodeB = new StaticSourceNode(staticSourceId('b', NumberType), time, () => 3);
 
       const node = new StaticStreamNode(
           staticStreamId('id', NumberType),
@@ -60,8 +60,8 @@ describe('node.StaticStreamNode', () => {
 
     should(`handle promises correctly`, async () => {
       const time = Time.new();
-      const sourceNodeA = new StaticSourceNode(staticSourceId('a', NumberType), time, 2);
-      const sourceNodeB = new StaticSourceNode(staticSourceId('b', NumberType), time, 3);
+      const sourceNodeA = new StaticSourceNode(staticSourceId('a', NumberType), time, () => 2);
+      const sourceNodeB = new StaticSourceNode(staticSourceId('b', NumberType), time, () => 3);
 
       const node = new StaticStreamNode(
           staticStreamId('id', NumberType),

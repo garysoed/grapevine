@@ -4,7 +4,9 @@ import { BaseDisposable } from 'gs-tools/export/dispose';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { Time } from '../component/time';
 import { InstanceNode } from './instance-node';
+import { InstanceSourceProvider } from './instance-source-provider';
 import { Listener } from './listener';
+
 
 /**
  * Node whose value can be updated.
@@ -15,12 +17,12 @@ export class InstanceSourceNode<T> extends InstanceNode<T> {
   constructor(
       id: InstanceSourceId<T>,
       initTime: Time,
-      private readonly initValue_: T) {
+      private readonly initProvider_: InstanceSourceProvider<T>) {
     super(initTime, id);
   }
 
-  protected async computeValue_(): Promise<T> {
-    return this.initValue_;
+  protected async computeValue_(context: BaseDisposable): Promise<T> {
+    return this.initProvider_(context);
   }
 
   @cache()

@@ -24,7 +24,7 @@ export function vineOutFactory(
 
       const handler = (target as any)[propertyKey];
       if (!(handler instanceof Function)) {
-        throw Errors.assert(`Type of ${target.constructor.name}.${propertyKey}`)
+        throw Errors.assert(`Type of ${target.constructor.name}.${propertyKey.toString()}`)
             .shouldBe('a function')
             .butWas(handler);
       }

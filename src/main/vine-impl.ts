@@ -35,7 +35,26 @@ export class VineImpl {
     this.requestQueue_ = new RequestQueue(time, window);
   }
 
-  private getNode_<T>(nodeId: NodeId<T>): AnyNode<T>|null {
+  async getLatest<T>(staticId: StaticSourceId<T>|StaticStreamId<T>): Promise<T>;
+  async getLatest<T>(instanceId: InstanceSourceId<T>|InstanceStreamId<T>, context: BaseDisposable):
+      Promise<T>;
+  async getLatest<T>(nodeId: NodeId<T>, context: BaseDisposable = GLOBAL_CONTEXT): Promise<T> {
+    const node = this.getNode_(nodeId);
+    if (!node) {
+      throw new Error(`Node for ${nodeId} cannot be found`);
+    }
+
+    const time = this.requestQueue_.getTime();
+    if (node instanceof InstanceNode) {
+      return node.getValue(context, time);
+    } else {
+      return node.getValue(time);
+    }
+  }
+
+  private getNode_(nodeId: NodeId<VineImpl>): AnyNode<VineImpl>;
+  private getNode_<T>(nodeId: NodeId<T>): AnyNode<T>|null;
+  private getNode_(nodeId: NodeId<any>): AnyNode<any>|null {
     if (nodeId instanceof StaticSourceId || nodeId instanceof InstanceSourceId) {
       return this.sourceMap_.get(nodeId) || null;
     }

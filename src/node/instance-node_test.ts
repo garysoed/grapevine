@@ -39,13 +39,16 @@ describe('node.InstanceNode', () => {
       const time2 = time1.increment();
       const context = new BaseDisposable();
 
-      const sourceNode = new InstanceSourceNode(instanceSourceId('sourceId', NumberType), time0, 1);
+      const sourceNode = new InstanceSourceNode(
+          instanceSourceId('sourceId', NumberType),
+          time0,
+          () => 1);
       sourceNode.setValue(3, context, time1);
 
       const futureSourceNode = new InstanceSourceNode(
           instanceSourceId('emptyId', NumberType),
           time2,
-          2);
+          () => 2);
 
       const value = 123;
       const mockComputeValueHandler = jasmine.createSpy('ComputeValueHandler');
@@ -65,7 +68,10 @@ describe('node.InstanceNode', () => {
       const time2 = time1.increment();
       const context = new BaseDisposable();
 
-      const sourceNode = new InstanceSourceNode(instanceSourceId('sourceId', NumberType), time0, 1);
+      const sourceNode = new InstanceSourceNode(
+          instanceSourceId('sourceId', NumberType),
+          time0,
+          () => 1);
       sourceNode.setValue(3, context, time1);
 
       const value = 123;
@@ -88,7 +94,10 @@ describe('node.InstanceNode', () => {
       const time1 = time0.increment();
       const context = new BaseDisposable();
 
-      const sourceNode = new InstanceSourceNode(instanceSourceId('sourceId', NumberType), time0, 1);
+      const sourceNode = new InstanceSourceNode(
+          instanceSourceId('sourceId', NumberType),
+          time0,
+          () => 1);
       sourceNode.setValue(3, context, time1);
 
       const mockComputeValueHandler = jasmine.createSpy('ComputeValueHandler');

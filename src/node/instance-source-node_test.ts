@@ -12,7 +12,7 @@ describe('node.InstanceSourceNode', () => {
   let node: InstanceSourceNode<number>;
 
   beforeEach(() => {
-    node = new InstanceSourceNode(ID, TIME, VALUE);
+    node = new InstanceSourceNode(ID, TIME, () => VALUE);
   });
 
   describe('getSources', () => {

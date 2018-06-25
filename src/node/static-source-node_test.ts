@@ -11,7 +11,7 @@ describe('node.StaticSourceNode', () => {
   let node: StaticSourceNode<number>;
 
   beforeEach(() => {
-    node = new StaticSourceNode(ID, TIME, VALUE);
+    node = new StaticSourceNode(ID, TIME, () => VALUE);
   });
 
   describe('getSources', () => {

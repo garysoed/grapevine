@@ -1,5 +1,6 @@
 import { SourceId } from '../component/source-id';
 import { Time } from '../component/time';
+import { InstanceSourceProvider } from '../node/instance-source-provider';
 import { RegistrationNode } from './registration-node';
 
 /**
@@ -9,11 +10,11 @@ export class SourceRegistrationNode<T> extends RegistrationNode<T> {
   constructor(
       initTime: Time,
       id: SourceId<T>,
-      private readonly initValue_: T) {
+      private readonly initProvider_: InstanceSourceProvider<T>) {
     super(initTime, id);
   }
 
-  getInitValue(): T {
-    return this.initValue_;
+  getInitProvider(): InstanceSourceProvider<T> {
+    return this.initProvider_;
   }
 }

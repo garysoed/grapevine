@@ -9,6 +9,7 @@ import { instanceStreamId } from '../component/instance-stream-id';
 import { staticSourceId } from '../component/static-source-id';
 import { staticStreamId } from '../component/static-stream-id';
 import { VineBuilder } from './vine-builder';
+import { $vine } from './vine-id';
 
 describe('main.VineBuilder', () => {
   let mockTime: MockTime;
@@ -106,6 +107,7 @@ describe('main.VineBuilder', () => {
 
       // Set expectations.
       mockTime.at(1, async () => {
+        assert(await vine.getLatest($vine)).to.be(vine);
         await wait(mockMainHandler).to.haveBeenCalledWith('27');
         await wait(mockCHandler).to.haveBeenCalledWith(9);
         await wait(mockGHandler).to.haveBeenCalledWith(13);

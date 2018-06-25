@@ -30,7 +30,7 @@ describe('main.VineImpl', () => {
       const initValue = 1;
       const newValue = 2;
       const newerValue = 4;
-      const sourceNode = new StaticSourceNode(id, time, initValue);
+      const sourceNode = new StaticSourceNode(id, time, () => initValue);
 
       const vine = new VineImpl(
           time,
@@ -59,7 +59,7 @@ describe('main.VineImpl', () => {
       const initValue = 1;
       const newValue = 2;
       const newerValue = 4;
-      const sourceNode = new InstanceSourceNode(id, time, initValue);
+      const sourceNode = new InstanceSourceNode(id, time, () => initValue);
       const context = new BaseDisposable();
 
       const vine = new VineImpl(
@@ -86,7 +86,7 @@ describe('main.VineImpl', () => {
     should(`call the handler correctly for static stream IDs`, async () => {
       const time = Time.new();
       const sourceId = staticSourceId('sourceId', NumberType);
-      const sourceNode = new StaticSourceNode(sourceId, time, 1);
+      const sourceNode = new StaticSourceNode(sourceId, time, () => 1);
 
       const id = staticStreamId('streamId', NumberType);
       const streamNode = new StaticStreamNode(
@@ -119,7 +119,7 @@ describe('main.VineImpl', () => {
     should(`call the handler correctly for instance stream IDs`, async () => {
       const time = Time.new();
       const sourceId = instanceSourceId('sourceId', NumberType);
-      const sourceNode = new InstanceSourceNode(sourceId, time, 1);
+      const sourceNode = new InstanceSourceNode(sourceId, time, () => 1);
 
       const id = instanceStreamId('streamId', NumberType);
       const streamNode = new InstanceStreamNode(
@@ -169,7 +169,7 @@ describe('main.VineImpl', () => {
       const time = Time.new();
       const id = staticSourceId('id', NumberType);
       const value = 2;
-      const sourceNode = new StaticSourceNode(id, time, 1);
+      const sourceNode = new StaticSourceNode(id, time, () => 1);
 
       const vine = new VineImpl(
           time,
@@ -190,7 +190,7 @@ describe('main.VineImpl', () => {
       const time = Time.new();
       const id = instanceSourceId('id', NumberType);
       const value = 2;
-      const sourceNode = new InstanceSourceNode(id, time, 1);
+      const sourceNode = new InstanceSourceNode(id, time, () => 1);
       const context = new BaseDisposable();
 
       const vine = new VineImpl(

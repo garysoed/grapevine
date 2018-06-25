@@ -15,12 +15,12 @@ export class StaticSourceNode<T> extends StaticNode<T> {
   constructor(
       id: StaticSourceId<T>,
       initTime: Time,
-      private readonly initValue_: T) {
+      private readonly initProvider_: () => T) {
     super(initTime, id);
   }
 
-  protected async computeValue_(time: Time): Promise<T> {
-    return this.initValue_;
+  protected async computeValue_(): Promise<T> {
+    return this.initProvider_();
   }
 
   @cache()

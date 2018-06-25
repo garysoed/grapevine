@@ -11,6 +11,7 @@ import { StaticSourceId } from '../component/static-source-id';
 import { StaticStreamId } from '../component/static-stream-id';
 import { StreamId } from '../component/stream-id';
 import { Time } from '../component/time';
+import { GLOBAL_CONTEXT } from '../node/global-context';
 import { InstanceSourceNode } from '../node/instance-source-node';
 import { InstanceStreamNode } from '../node/instance-stream-node';
 import { SourceNode } from '../node/source-node';
@@ -19,6 +20,7 @@ import { StaticSourceNode } from '../node/static-source-node';
 import { StaticStreamNode } from '../node/static-stream-node';
 import { SourceRegistrationNode } from '../registration/source-registration-node';
 import { StreamRegistrationNode } from '../registration/stream-registration-node';
+import { $vine } from './vine-id';
 import { VineImpl } from './vine-impl';
 
 type StreamNode<T> = InstanceStreamNode<T>|StaticStreamNode<T>;
@@ -119,9 +121,12 @@ export class VineBuilder {
       sourceId: InstanceSourceId<any>|StaticSourceId<any>,
       registration: SourceRegistrationNode<any>): SourceNode<any> {
     if (sourceId instanceof InstanceSourceId) {
-      return new InstanceSourceNode(sourceId, this.currentTime_, registration.getInitValue());
+      return new InstanceSourceNode(sourceId, this.currentTime_, registration.getInitProvider());
     } else {
-      return new StaticSourceNode(sourceId, this.currentTime_, registration.getInitValue());
+      return new StaticSourceNode(
+          sourceId,
+          this.currentTime_,
+          () => registration.getInitProvider()(GLOBAL_CONTEXT));
     }
   }
 
@@ -178,15 +183,25 @@ export class VineBuilder {
       streamMap.set(streamId, streamNode);
     }
 
-    return new VineImpl(
+    // Add the VineNode.
+    let vine: VineImpl;
+    const vineNode = new StaticSourceNode($vine, this.currentTime_, () => vine);
+    sourceMap.set($vine, vineNode);
+
+    vine = new VineImpl(
         this.currentTime_,
         ImmutableMap.of(sourceMap),
         ImmutableMap.of(streamMap),
         this.window_);
+
+    return vine;
   }
 
   source<T>(nodeId: SourceId<T>, initValue: T): void {
-    const sourceRegistrationNode = new SourceRegistrationNode(this.currentTime_, nodeId, initValue);
+    const sourceRegistrationNode = new SourceRegistrationNode(
+        this.currentTime_,
+        nodeId,
+        () => initValue);
     if (this.registeredSources_.has(nodeId)) {
       throw Errors.assert(`node ${nodeId}`).should('not have been registered').butWas('');
     }
