@@ -5,6 +5,7 @@ import { Time } from '../component/time';
 import { GLOBAL_CONTEXT } from './global-context';
 import { Listener } from './listener';
 import { StaticNode } from './static-node';
+import { StaticSourceProvider } from './static-source-provider';
 
 /**
  * Node whose value can be updated.
@@ -15,7 +16,7 @@ export class StaticSourceNode<T> extends StaticNode<T> {
   constructor(
       id: StaticSourceId<T>,
       initTime: Time,
-      private readonly initProvider_: () => T) {
+      private readonly initProvider_: StaticSourceProvider<T>) {
     super(initTime, id);
   }
 

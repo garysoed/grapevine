@@ -13,17 +13,21 @@ import { StreamId } from '../component/stream-id';
 import { Time } from '../component/time';
 import { GLOBAL_CONTEXT } from '../node/global-context';
 import { InstanceSourceNode } from '../node/instance-source-node';
+import { InstanceSourceProvider } from '../node/instance-source-provider';
 import { InstanceStreamNode } from '../node/instance-stream-node';
 import { SourceNode } from '../node/source-node';
 import { StaticNode } from '../node/static-node';
 import { StaticSourceNode } from '../node/static-source-node';
+import { StaticSourceProvider } from '../node/static-source-provider';
 import { StaticStreamNode } from '../node/static-stream-node';
-import { SourceRegistrationNode } from '../registration/source-registration-node';
+import { InstanceSourceRegistrationNode } from '../registration/instance-source-registration-node';
+import { StaticSourceRegistrationNode } from '../registration/static-source-registration-node';
 import { StreamRegistrationNode } from '../registration/stream-registration-node';
 import { $vine } from './vine-id';
 import { VineImpl } from './vine-impl';
 
 type StreamNode<T> = InstanceStreamNode<T>|StaticStreamNode<T>;
+type SourceRegistrationNode<T> = StaticSourceRegistrationNode<T>|InstanceSourceRegistrationNode<T>;
 
 const streamIdType = UnionType<StreamId<any>>([
   InstanceofType(InstanceStreamId),
@@ -198,12 +202,29 @@ export class VineBuilder {
   }
 
   source<T>(nodeId: SourceId<T>, initValue: T): void {
-    const sourceRegistrationNode = new SourceRegistrationNode(
-        this.currentTime_,
-        nodeId,
-        () => initValue);
+    this.sourceWithProvider(nodeId, () => initValue);
+  }
+
+  sourceWithProvider<T>(nodeId: StaticSourceId<T>, provider: StaticSourceProvider<T>): void;
+  sourceWithProvider<T>(nodeId: SourceId<T>, provider: InstanceSourceProvider<T>): void;
+  sourceWithProvider<T>(
+      nodeId: SourceId<T>,
+      provider: StaticSourceProvider<T>|InstanceSourceProvider<T>): void {
     if (this.registeredSources_.has(nodeId)) {
       throw Errors.assert(`node ${nodeId}`).should('not have been registered').butWas('');
+    }
+
+    let sourceRegistrationNode;
+    if (nodeId instanceof StaticSourceId) {
+      sourceRegistrationNode = new StaticSourceRegistrationNode(
+          this.currentTime_,
+          nodeId,
+          provider as StaticSourceProvider<T>);
+    } else {
+      sourceRegistrationNode = new InstanceSourceRegistrationNode(
+          this.currentTime_,
+          nodeId,
+          provider);
     }
 
     this.registeredSources_.set(nodeId, sourceRegistrationNode);
