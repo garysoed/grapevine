@@ -77,9 +77,9 @@ describe('annotation.vineOut', () => {
 
     // Set events.
     mockTime.at(0, () => {
-      vine.listen(mainId, mockMainHandler, context);
-      vine.listen(cId, mockCHandler, context);
-      vine.listen(gId, mockGHandler, context);
+      vine.listen(mockMainHandler, context, mainId);
+      vine.listen(mockCHandler, context, cId);
+      vine.listen(mockGHandler, context, gId);
     });
     mockTime.at(2, () => {
       vine.setValue(dId, 5, context);

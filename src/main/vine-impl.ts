@@ -1,4 +1,4 @@
-import { ImmutableMap } from 'gs-tools/export/collect';
+import { ImmutableMap, ImmutableSet } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';
@@ -67,28 +67,67 @@ export class VineImpl {
   }
 
   listen<T>(
-      nodeId: InstanceSourceId<T> | InstanceStreamId<T>,
-      handler: Listener<T>,
-      context: BaseDisposable): () => void;
-  listen<T>(nodeId: StaticSourceId<T> | StaticStreamId<T>, handler: Listener<T>): () => void;
+      handler: (value: T) => void,
+      context: BaseDisposable,
+      nodeId: NodeId<T>): () => void;
+  listen<T1, T2>(
+      handler: (value1: T1, value2: T2) => void,
+      context: BaseDisposable,
+      nodeId1: NodeId<T1>,
+      nodeId2: NodeId<T2>): () => void;
+
   listen<T>(
-      nodeId: NodeId<T>,
-      handler: Listener<T>,
-      context: BaseDisposable = GLOBAL_CONTEXT): () => void {
-    const node = this.getNode_(nodeId);
-    if (!node) {
-      throw new Error(`Node for ${nodeId} cannot be found`);
+      handler: (value: T) => void,
+      nodeId: StaticSourceId<T>|StaticStreamId<T>): () => void;
+  listen<T1, T2>(
+      handler: (value1: T1, value2: T2) => void,
+      nodeId1: StaticSourceId<T1>|StaticStreamId<T1>,
+      nodeId2: StaticSourceId<T2>|StaticStreamId<T2>): () => void;
+
+  listen(
+      handler: (...args: any[]) => void,
+      contextOrId: BaseDisposable|NodeId<any>,
+      ...rawNodeIds: NodeId<any>[]): () => void {
+    // Normalize the context and node
+    const context = contextOrId instanceof BaseDisposable ? contextOrId : GLOBAL_CONTEXT;
+    const nodeIds = contextOrId instanceof NodeId ? [contextOrId, ...rawNodeIds] : rawNodeIds;
+
+    // Collect the nodes and source nodes.
+    const sourceNodes = new Set<SourceNode<any>>();
+    const nodes = new Map<NodeId<any>, AnyNode<any>>();
+    for (const nodeId of nodeIds) {
+      const node = this.getNode_(nodeId);
+      if (!node) {
+        throw new Error(`Node for ${nodeId} cannot be found`);
+      }
+
+      for (const sourceNode of node.getSources()) {
+        sourceNodes.add(sourceNode);
+      }
+      nodes.set(nodeId, node);
     }
 
+    // Create the wrapped handler.
     const wrappedHandler = async () => {
       const time = this.requestQueue_.getTime();
-      if (node instanceof InstanceNode) {
-        handler(await node.getValue(context, time));
-      } else {
-        handler(await node.getValue(time));
+      const valuePromises = [];
+      for (const nodeId of nodeIds) {
+        // tslint:disable-next-line:no-non-null-assertion
+        const node = nodes.get(nodeId)!;
+
+        if (node instanceof InstanceNode) {
+          valuePromises.push(node.getValue(context, time));
+        } else {
+          valuePromises.push(node.getValue(time));
+        }
+
+        const values = await Promise.all(valuePromises);
+        handler(...values);
       }
     };
-    const unlistenFns = node.getSources()
+
+    const unlistenFns = ImmutableSet
+        .of(sourceNodes)
         .mapItem(source => {
           if (source instanceof InstanceSourceNode) {
             return source.listen(wrappedHandler, context);

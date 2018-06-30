@@ -1,17 +1,19 @@
 import 'jasmine';
 
-import { assert, should, wait } from 'gs-testing/export/main';
+import { assert, fshould, should, wait } from 'gs-testing/export/main';
 import { MockTime } from 'gs-testing/export/mock';
 import { ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
-import { NumberType } from 'gs-types/export';
+import { NumberType, StringType } from 'gs-types/export';
 import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
+import { SourceId } from '../component/source-id';
 import { staticSourceId } from '../component/static-source-id';
 import { staticStreamId } from '../component/static-stream-id';
 import { Time } from '../component/time';
 import { InstanceSourceNode } from '../node/instance-source-node';
 import { InstanceStreamNode } from '../node/instance-stream-node';
+import { SourceNode } from '../node/source-node';
 import { StaticSourceNode } from '../node/static-source-node';
 import { StaticStreamNode } from '../node/static-stream-node';
 import { VineImpl } from './vine-impl';
@@ -26,60 +28,72 @@ describe('main.VineImpl', () => {
   describe('listen', () => {
     should(`call the handler correctly for static source IDs`, async () => {
       const time = Time.new();
-      const id = staticSourceId('id', NumberType);
-      const initValue = 1;
-      const newValue = 2;
+      const id1 = staticSourceId('id1', NumberType);
+      const id2 = staticSourceId('id2', StringType);
+      const initValue1 = 1;
+      const initValue2 = 'abc';
+      const newValue1 = 2;
+      const newValue2 = 'def';
       const newerValue = 4;
-      const sourceNode = new StaticSourceNode(id, time, () => initValue);
+      const sourceNode1 = new StaticSourceNode(id1, time, () => initValue1);
+      const sourceNode2 = new StaticSourceNode(id2, time, () => initValue2);
 
       const vine = new VineImpl(
           time,
-          ImmutableMap.of([[id, sourceNode]]),
+          ImmutableMap.of<SourceId<any>, SourceNode<any>>([[id1, sourceNode1], [id2, sourceNode2]]),
           ImmutableMap.of(),
           mockTime.createWindow());
 
       const mockHandler = jasmine.createSpy('Handler');
-      const unlistenFn = vine.listen(id, mockHandler);
+      const unlistenFn = vine.listen(mockHandler, id1, id2);
 
-      mockTime.at(1, () => vine.setValue(id, newValue));
-      mockTime.at(3, () => {
+      mockTime.at(1, () => vine.setValue(id1, newValue1));
+      mockTime.at(3, () => vine.setValue(id2, newValue2));
+      mockTime.at(5, () => {
         unlistenFn();
-        vine.setValue(id, newerValue);
+        vine.setValue(id1, newerValue);
       });
 
-      mockTime.at(0, async () => wait(mockHandler).to.haveBeenCalledWith(initValue));
-      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(newValue));
-      mockTime.at(4, async () => wait(mockHandler).toNot.haveBeenCalledWith(newerValue));
+      mockTime.at(0, async () => wait(mockHandler).to.haveBeenCalledWith(initValue1, initValue2));
+      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(newValue1, initValue2));
+      mockTime.at(4, async () => wait(mockHandler).to.haveBeenCalledWith(newValue1, newValue2));
+      mockTime.at(6, async () => wait(mockHandler).toNot.haveBeenCalledWith(newerValue));
       await mockTime.run();
     });
 
     should(`call the handler correctly for instance source IDs`, async () => {
       const time = Time.new();
-      const id = instanceSourceId('id', NumberType);
-      const initValue = 1;
-      const newValue = 2;
+      const id1 = instanceSourceId('id1', NumberType);
+      const id2 = staticSourceId('id2', StringType);
+      const initValue1 = 1;
+      const initValue2 = 'abc';
+      const newValue1 = 2;
+      const newValue2 = 'def';
       const newerValue = 4;
-      const sourceNode = new InstanceSourceNode(id, time, () => initValue);
+      const sourceNode1 = new InstanceSourceNode(id1, time, () => initValue1);
+      const sourceNode2 = new StaticSourceNode(id2, time, () => initValue2);
       const context = new BaseDisposable();
 
       const vine = new VineImpl(
           time,
-          ImmutableMap.of([[id, sourceNode]]),
+          ImmutableMap.of<SourceId<any>, SourceNode<any>>([[id1, sourceNode1], [id2, sourceNode2]]),
           ImmutableMap.of(),
           mockTime.createWindow());
 
       const mockHandler = jasmine.createSpy('Handler');
-      const unlistenFn = vine.listen(id, mockHandler, context);
+      const unlistenFn = vine.listen(mockHandler, context, id1, id2);
 
-      mockTime.at(1, () => vine.setValue(id, newValue, context));
-      mockTime.at(3, () => {
+      mockTime.at(1, () => vine.setValue(id1, newValue1, context));
+      mockTime.at(3, () => vine.setValue(id2, newValue2));
+      mockTime.at(5, () => {
         unlistenFn();
-        vine.setValue(id, newerValue, context);
+        vine.setValue(id1, newerValue, context);
       });
 
-      mockTime.at(0, async () => wait(mockHandler).to.haveBeenCalledWith(initValue));
-      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(newValue));
-      mockTime.at(4, async () => wait(mockHandler).toNot.haveBeenCalledWith(newerValue));
+      mockTime.at(0, async () => wait(mockHandler).to.haveBeenCalledWith(initValue1, initValue2));
+      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(newValue1, initValue2));
+      mockTime.at(4, async () => wait(mockHandler).to.haveBeenCalledWith(newValue1, newValue2));
+      mockTime.at(6, async () => wait(mockHandler).toNot.haveBeenCalledWith(newerValue));
       await mockTime.run();
     });
 
@@ -103,7 +117,7 @@ describe('main.VineImpl', () => {
           ImmutableMap.of([[id, streamNode]]),
           mockTime.createWindow());
 
-      const unlistenFn = vine.listen(id, mockHandler);
+      const unlistenFn = vine.listen(mockHandler, id);
       mockTime.at(1, () => vine.setValue(sourceId, 2));
       mockTime.at(3, () => {
         unlistenFn();
@@ -137,7 +151,7 @@ describe('main.VineImpl', () => {
           ImmutableMap.of([[id, streamNode]]),
           mockTime.createWindow());
 
-      const unlistenFn = vine.listen(id, mockHandler, context);
+      const unlistenFn = vine.listen(mockHandler, context, id);
       mockTime.at(1, () => vine.setValue(sourceId, 2, context));
       mockTime.at(3, () => {
         unlistenFn();
@@ -159,7 +173,7 @@ describe('main.VineImpl', () => {
           mockTime.createWindow());
 
       assert(() => {
-        vine.listen(nodeId, () => undefined);
+        vine.listen(() => undefined, nodeId);
       }).to.throwError(/cannot be found/);
     });
   });
@@ -178,7 +192,7 @@ describe('main.VineImpl', () => {
           mockTime.createWindow());
 
       const mockHandler = jasmine.createSpy('Handler');
-      vine.listen(id, mockHandler);
+      vine.listen(mockHandler, id);
 
       mockTime.at(1, () => vine.setValue(id, value));
 
@@ -201,7 +215,7 @@ describe('main.VineImpl', () => {
 
       mockTime.at(1, () => vine.setValue(id, value));
       mockTime.at(2, () => {
-        vine.listen(id, mockHandler);
+        vine.listen(mockHandler, id);
         vine.setValue(id, value);
       });
 
@@ -225,7 +239,7 @@ describe('main.VineImpl', () => {
           mockTime.createWindow());
 
       const mockHandler = jasmine.createSpy('Handler');
-      vine.listen(id, mockHandler, context);
+      vine.listen(mockHandler, context, id);
 
       mockTime.at(1, () => vine.setValue(id, value, context));
 
@@ -249,7 +263,7 @@ describe('main.VineImpl', () => {
 
       mockTime.at(1, () => vine.setValue(id, value, context));
       mockTime.at(2, () => {
-        vine.listen(id, mockHandler, context);
+        vine.listen(mockHandler, context, id);
         vine.setValue(id, value, context);
       });
 
