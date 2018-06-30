@@ -12,7 +12,6 @@ import { GLOBAL_CONTEXT } from '../node/global-context';
 import { InstanceNode } from '../node/instance-node';
 import { InstanceSourceNode } from '../node/instance-source-node';
 import { InstanceStreamNode } from '../node/instance-stream-node';
-import { Listener } from '../node/listener';
 import { SourceNode } from '../node/source-node';
 import { StaticNode } from '../node/static-node';
 import { StaticStreamNode } from '../node/static-stream-node';
@@ -156,7 +155,6 @@ export class VineImpl {
 
     if (sourceNode instanceof InstanceSourceNode) {
       this.requestQueue_.queue(async time => {
-        const latestTime = sourceNode.getLatestCachedTimeBefore(context, time);
         const latestValue = await sourceNode.getValue(context, time);
         if (latestValue !== newValue) {
           sourceNode.setValue(newValue, context, time);
@@ -164,7 +162,6 @@ export class VineImpl {
       });
     } else {
       this.requestQueue_.queue(async time => {
-        const latestTime = sourceNode.getLatestCachedTimeBefore(time);
         const latestValue = await sourceNode.getValue(time);
         if (latestValue !== newValue) {
           sourceNode.setValue(newValue, time);
