@@ -119,10 +119,10 @@ export class VineImpl {
         } else {
           valuePromises.push(node.getValue(time));
         }
-
-        const values = await Promise.all(valuePromises);
-        handler(...values);
       }
+
+      const values = await Promise.all(valuePromises);
+      handler(...values);
     };
 
     const unlistenFns = ImmutableSet

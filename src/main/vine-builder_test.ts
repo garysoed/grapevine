@@ -107,7 +107,7 @@ describe('main.VineBuilder', () => {
 
       // Set expectations.
       mockTime.at(1, async () => {
-        assert(await vine.getLatest($vine)).to.be(vine);
+        assert(await vine.getLatest($vine)).to.equal(vine);
         await wait(mockMainHandler).to.haveBeenCalledWith('27');
         await wait(mockCHandler).to.haveBeenCalledWith(9);
         await wait(mockGHandler).to.haveBeenCalledWith(13);

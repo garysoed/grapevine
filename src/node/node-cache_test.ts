@@ -17,7 +17,7 @@ describe('node.NodeCache', () => {
       const time = Time.new();
 
       cache.setCachedValue(Promise.resolve(value), context, time);
-      assert(await cache.getCachedValue(context, time)).to.be(value);
+      assert(await cache.getCachedValue(context, time)).to.equal(value);
     });
 
     should(`resolve undefined if the value does not exist at the time`, async () => {
@@ -56,7 +56,7 @@ describe('node.NodeCache', () => {
       cache.setCachedValue(Promise.resolve(1), context, time1);
       cache.setCachedValue(Promise.resolve(3), context, time3);
 
-      assert(cache.getLatestCachedTimeBefore(context, time2)).to.be(time1);
+      assert(cache.getLatestCachedTimeBefore(context, time2)).to.equal(time1);
     });
 
     should(`return null if all the times are after the given time`, () => {
@@ -93,7 +93,7 @@ describe('node.NodeCache', () => {
       const context = new BaseDisposable();
 
       cache.setCachedValue(Promise.resolve(value), context, time);
-      assert(await cache.getCachedValue(context, time)).to.be(value);
+      assert(await cache.getCachedValue(context, time)).to.equal(value);
     });
 
     should(`clear the cache if the context is disposed`, async () => {
