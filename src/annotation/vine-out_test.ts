@@ -1,5 +1,5 @@
-import { wait } from 'gs-testing/export/main';
-import { MockTime } from 'gs-testing/export/mock';
+import { match, retryUntil } from 'gs-testing/export/main';
+import { createSpy } from 'gs-testing/export/spy';
 import { should } from 'gs-testing/src/main/run';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
@@ -10,12 +10,6 @@ import { getOrRegisterApp } from '../main/vine';
 const {builder, vineIn, vineOut} = getOrRegisterApp('test');
 
 describe('annotation.vineOut', () => {
-  let mockTime: MockTime;
-
-  beforeEach(() => {
-    mockTime = new MockTime();
-  });
-
   should(`set up the stream correctly`, async () => {
     const mainId = instanceStreamId('main', StringType);
     const aId = instanceStreamId('a', NumberType);
@@ -69,33 +63,24 @@ describe('annotation.vineOut', () => {
     builder.source(hId, 4);
 
     const vine = builder.run();
-    const mockMainHandler = jasmine.createSpy('MainHandler');
-    const mockCHandler = jasmine.createSpy('CHandler');
-    const mockGHandler = jasmine.createSpy('GHandler');
+    const mockMainHandler = createSpy('MainHandler');
+    const mockCHandler = createSpy('CHandler');
+    const mockGHandler = createSpy('GHandler');
 
     const context = new TestClass();
 
-    // Set events.
-    mockTime.at(0, () => {
-      vine.listen(mockMainHandler, context, mainId);
-      vine.listen(mockCHandler, context, cId);
-      vine.listen(mockGHandler, context, gId);
-    });
-    mockTime.at(2, () => {
-      vine.setValue(dId, 5, context);
-      vine.setValue(hId, 6, context);
-    });
+    vine.listen(mockMainHandler, context, mainId);
+    vine.listen(mockCHandler, context, cId);
+    vine.listen(mockGHandler, context, gId);
 
-    // Set expectations.
-    mockTime.at(1, async () => {
-      await wait(mockMainHandler).to.haveBeenCalledWith('27');
-      await wait(mockCHandler).to.haveBeenCalledWith(9);
-      await wait(mockGHandler).to.haveBeenCalledWith(13);
-    });
-    mockTime.at(3, async () => {
-      await wait(mockMainHandler).to.haveBeenCalledWith('63');
-      await wait(mockGHandler).to.haveBeenCalledWith(15);
-    });
-    await mockTime.run();
+    await retryUntil(() => mockMainHandler).to.equal(match.anySpyThat().haveBeenCalledWith('27'));
+    await retryUntil(() => mockCHandler).to.equal(match.anySpyThat().haveBeenCalledWith(9));
+    await retryUntil(() => mockGHandler).to.equal(match.anySpyThat().haveBeenCalledWith(13));
+
+    vine.setValue(dId, 5, context);
+    vine.setValue(hId, 6, context);
+
+    await retryUntil(() => mockMainHandler).to.equal(match.anySpyThat().haveBeenCalledWith('63'));
+    await retryUntil(() => mockGHandler).to.equal(match.anySpyThat().haveBeenCalledWith(15));
   });
 });

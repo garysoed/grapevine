@@ -1,5 +1,6 @@
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { Time } from '../component/time';
+import { SourceNode } from '../node/source-node';
 
 type SetRequest = (time: Time) => void;
 
@@ -7,7 +8,7 @@ type SetRequest = (time: Time) => void;
  * Queue that batches requests and processes them asynchronously.
  */
 export class RequestQueue extends BaseDisposable {
-  private readonly requests_: SetRequest[] = [];
+  private readonly requests_: Map<SourceNode<unknown>, SetRequest> = new Map();
   private timerId_: number|null = null;
 
   constructor(
@@ -20,11 +21,11 @@ export class RequestQueue extends BaseDisposable {
     const time = this.time_.increment();
     this.time_ = time;
 
-    for (const request of this.requests_) {
+    for (const [, request] of this.requests_) {
       request(time);
     }
 
-    this.requests_.splice(0, this.requests_.length);
+    this.requests_.clear();
     this.timerId_ = null;
   }
 
@@ -32,8 +33,8 @@ export class RequestQueue extends BaseDisposable {
     return this.time_;
   }
 
-  queue(request: SetRequest): void {
-    this.requests_.push(request);
+  queue(key: SourceNode<unknown>, request: SetRequest): void {
+    this.requests_.set(key, request);
     if (this.timerId_ === null) {
       this.timerId_ = this.window_.setTimeout(() => this.flushQueue_(), 0);
     }

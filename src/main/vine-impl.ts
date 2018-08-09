@@ -154,14 +154,14 @@ export class VineImpl {
     }
 
     if (sourceNode instanceof InstanceSourceNode) {
-      this.requestQueue_.queue(async time => {
+      this.requestQueue_.queue(sourceNode, async time => {
         const latestValue = await sourceNode.getValue(context, time);
         if (latestValue !== newValue) {
           sourceNode.setValue(newValue, context, time);
         }
       });
     } else {
-      this.requestQueue_.queue(async time => {
+      this.requestQueue_.queue(sourceNode, async time => {
         const latestValue = await sourceNode.getValue(time);
         if (latestValue !== newValue) {
           sourceNode.setValue(newValue, time);

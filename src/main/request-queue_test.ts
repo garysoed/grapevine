@@ -1,8 +1,10 @@
 import 'jasmine';
 
-import { assert, should } from 'gs-testing/export/main';
-import { MockTime } from 'gs-testing/export/mock';
+import { assert, match, should } from 'gs-testing/export/main';
+import { Mocks, MockTime } from 'gs-testing/export/mock';
+import { createSpy } from 'gs-testing/export/spy';
 import { Time } from '../component/time';
+import { SourceNode } from '../node/source-node';
 import { RequestQueue } from './request-queue';
 
 describe('main.RequestQueue', () => {
@@ -19,31 +21,37 @@ describe('main.RequestQueue', () => {
 
   describe('queue', () => {
     should(`queue and process the requests correctly`, async () => {
-      const mockRequest1 = jasmine.createSpy('Request1');
-      const mockRequest2 = jasmine.createSpy('Request2');
-      const mockRequest3 = jasmine.createSpy('Request3');
+      const mockKey1 = Mocks.object<SourceNode<unknown>>('key1');
+      const mockKey2 = Mocks.object<SourceNode<unknown>>('key2');
+      const mockKey3 = Mocks.object<SourceNode<unknown>>('key3');
+
+      const mockRequest1 = createSpy('Request1');
+      const mockRequest2 = createSpy('Request2');
+      const mockRequest3 = createSpy('Request3');
 
       mockTime.at(0, () => {
-        queue.queue(mockRequest1);
-        queue.queue(mockRequest2);
+        queue.queue(mockKey1, mockRequest1);
+        queue.queue(mockKey2, mockRequest2);
       });
       mockTime.at(2, () => {
-        queue.queue(mockRequest3);
+        queue.queue(mockKey3, mockRequest3);
       });
 
       let time1: Time;
       mockTime.at(1, () => {
-        time1 = mockRequest1.calls.argsFor(0)[0];
+        const timeMatcher = match.anyThat<Time>().beAnInstanceOf(Time);
+        assert(mockRequest1).to.haveBeenCalledWith(timeMatcher);
+        time1 = timeMatcher.getLastMatch();
         assert(initTime.before(time1)).to.beTrue();
-        assert(mockRequest1).to.haveBeenCalledWith(time1);
         assert(mockRequest2).to.haveBeenCalledWith(time1);
         assert(mockRequest3).toNot.haveBeenCalled();
       });
 
       mockTime.at(3, () => {
-        const time2 = mockRequest3.calls.argsFor(0)[0];
+        const timeMatcher = match.anyThat<Time>().beAnInstanceOf(Time);
+        assert(mockRequest3).to.haveBeenCalledWith(timeMatcher);
+        const time2 = timeMatcher.getLastMatch();
         assert(time1.before(time2)).to.beTrue();
-        assert(mockRequest3).to.haveBeenCalledWith(time2);
       });
 
       await mockTime.run();

@@ -1,7 +1,8 @@
 import 'jasmine';
 
-import { assert, should, wait } from 'gs-testing/export/main';
+import { assert, match, retryUntil, should } from 'gs-testing/export/main';
 import { MockTime } from 'gs-testing/export/mock';
+import { createSpy } from 'gs-testing/export/spy';
 import { ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
@@ -44,7 +45,7 @@ describe('main.VineImpl', () => {
           ImmutableMap.of(),
           mockTime.createWindow());
 
-      const mockHandler = jasmine.createSpy('Handler');
+      const mockHandler = createSpy('Handler');
       const unlistenFn = vine.listen(mockHandler, id1, id2);
 
       mockTime.at(1, () => vine.setValue(id1, newValue1));
@@ -54,10 +55,22 @@ describe('main.VineImpl', () => {
         vine.setValue(id1, newerValue);
       });
 
-      mockTime.at(0, async () => wait(mockHandler).to.haveBeenCalledWith(initValue1, initValue2));
-      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(newValue1, initValue2));
-      mockTime.at(4, async () => wait(mockHandler).to.haveBeenCalledWith(newValue1, newValue2));
-      mockTime.at(6, async () => wait(mockHandler).toNot.haveBeenCalledWith(newerValue));
+      mockTime.at(
+          0,
+          async () => retryUntil(() => mockHandler)
+              .to.equal(match.anySpyThat().haveBeenCalledWith(initValue1, initValue2)));
+      mockTime.at(
+          2,
+          async () => retryUntil(() => mockHandler)
+              .to.equal(match.anySpyThat().haveBeenCalledWith(newValue1, initValue2)));
+      mockTime.at(
+          4,
+          async () => retryUntil(() => mockHandler)
+              .to.equal(match.anySpyThat().haveBeenCalledWith(newValue1, newValue2)));
+      mockTime.at(
+          6,
+          async () => retryUntil(() => mockHandler)
+              .toNot.equal(match.anySpyThat().haveBeenCalledWith(newerValue)));
       await mockTime.run();
     });
 
@@ -80,7 +93,7 @@ describe('main.VineImpl', () => {
           ImmutableMap.of(),
           mockTime.createWindow());
 
-      const mockHandler = jasmine.createSpy('Handler');
+      const mockHandler = createSpy('Handler');
       const unlistenFn = vine.listen(mockHandler, context, id1, id2);
 
       mockTime.at(1, () => vine.setValue(id1, newValue1, context));
@@ -90,10 +103,22 @@ describe('main.VineImpl', () => {
         vine.setValue(id1, newerValue, context);
       });
 
-      mockTime.at(0, async () => wait(mockHandler).to.haveBeenCalledWith(initValue1, initValue2));
-      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(newValue1, initValue2));
-      mockTime.at(4, async () => wait(mockHandler).to.haveBeenCalledWith(newValue1, newValue2));
-      mockTime.at(6, async () => wait(mockHandler).toNot.haveBeenCalledWith(newerValue));
+    mockTime.at(
+        0,
+        async () => retryUntil(() => mockHandler)
+            .to.equal(match.anySpyThat().haveBeenCalledWith(initValue1, initValue2)));
+    mockTime.at(
+        2,
+        async () => retryUntil(() => mockHandler)
+            .to.equal(match.anySpyThat().haveBeenCalledWith(newValue1, initValue2)));
+    mockTime.at(
+        4,
+        async () => retryUntil(() => mockHandler)
+            .to.equal(match.anySpyThat().haveBeenCalledWith(newValue1, newValue2)));
+    mockTime.at(
+        6,
+        async () => retryUntil(() => mockHandler)
+            .toNot.equal(match.anySpyThat().haveBeenCalledWith(newerValue)));
       await mockTime.run();
     });
 
@@ -109,7 +134,7 @@ describe('main.VineImpl', () => {
           v => v * v,
           ImmutableList.of([sourceNode]));
 
-      const mockHandler = jasmine.createSpy('Handler');
+      const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
           time,
@@ -124,9 +149,18 @@ describe('main.VineImpl', () => {
         vine.setValue(sourceId, 4);
       });
 
-      mockTime.at(0, async () => wait(mockHandler).to.haveBeenCalledWith(1));
-      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(4));
-      mockTime.at(4, async () => wait(mockHandler).toNot.haveBeenCalledWith(16));
+      mockTime.at(
+          0,
+          async () => retryUntil(() => mockHandler)
+              .to.equal(match.anySpyThat().haveBeenCalledWith(1)));
+      mockTime.at(
+          2,
+          async () => retryUntil(() => mockHandler)
+              .to.equal(match.anySpyThat().haveBeenCalledWith(4)));
+      mockTime.at(
+          4,
+          async () => retryUntil(() => mockHandler)
+              .toNot.equal(match.anySpyThat().haveBeenCalledWith(16)));
       await mockTime.run();
     });
 
@@ -143,7 +177,7 @@ describe('main.VineImpl', () => {
           ImmutableList.of([sourceNode]));
       const context = new BaseDisposable();
 
-      const mockHandler = jasmine.createSpy('Handler');
+      const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
           time,
@@ -158,9 +192,18 @@ describe('main.VineImpl', () => {
         vine.setValue(sourceId, 4, context);
       });
 
-      mockTime.at(0, async () => wait(mockHandler).to.haveBeenCalledWith(1));
-      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(4));
-      mockTime.at(4, async () => wait(mockHandler).toNot.haveBeenCalledWith(16));
+      mockTime.at(
+          0,
+          async () => retryUntil(() => mockHandler)
+              .to.equal(match.anySpyThat().haveBeenCalledWith(1)));
+      mockTime.at(
+          2,
+          async () => retryUntil(() => mockHandler)
+              .to.equal(match.anySpyThat().haveBeenCalledWith(4)));
+      mockTime.at(
+          4,
+          async () => retryUntil(() => mockHandler)
+              .toNot.equal(match.anySpyThat().haveBeenCalledWith(16)));
       await mockTime.run();
     });
 
@@ -174,7 +217,7 @@ describe('main.VineImpl', () => {
 
       assert(() => {
         vine.listen(() => undefined, nodeId);
-      }).to.throwError(/cannot be found/);
+      }).to.throwErrorWithMessage(/cannot be found/);
     });
   });
 
@@ -191,12 +234,15 @@ describe('main.VineImpl', () => {
           ImmutableMap.of(),
           mockTime.createWindow());
 
-      const mockHandler = jasmine.createSpy('Handler');
+      const mockHandler = createSpy('Handler');
       vine.listen(mockHandler, id);
 
       mockTime.at(1, () => vine.setValue(id, value));
 
-      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(value));
+      mockTime.at(
+          2,
+          async () => retryUntil(() => mockHandler)
+              .to.equal(match.anySpyThat().haveBeenCalledWith(value)));
       await mockTime.run();
     });
 
@@ -205,7 +251,7 @@ describe('main.VineImpl', () => {
       const id = staticSourceId('id', NumberType);
       const value = 2;
       const sourceNode = new StaticSourceNode(id, time, () => 1);
-      const mockHandler = jasmine.createSpy('Handler');
+      const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
           time,
@@ -238,12 +284,15 @@ describe('main.VineImpl', () => {
           ImmutableMap.of(),
           mockTime.createWindow());
 
-      const mockHandler = jasmine.createSpy('Handler');
+      const mockHandler = createSpy('Handler');
       vine.listen(mockHandler, context, id);
 
       mockTime.at(1, () => vine.setValue(id, value, context));
 
-      mockTime.at(2, async () => wait(mockHandler).to.haveBeenCalledWith(value));
+      mockTime.at(
+          2,
+          async () => retryUntil(() => mockHandler)
+              .to.equal(match.anySpyThat().haveBeenCalledWith(value)));
       await mockTime.run();
     });
 
@@ -253,7 +302,7 @@ describe('main.VineImpl', () => {
       const value = 2;
       const sourceNode = new InstanceSourceNode(id, time, () => 1);
       const context = new BaseDisposable();
-      const mockHandler = jasmine.createSpy('Handler');
+      const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
           time,
@@ -283,7 +332,7 @@ describe('main.VineImpl', () => {
 
       assert(() => {
         vine.setValue(nodeId, 12);
-      }).to.throwError(/cannot be found/);
+      }).to.throwErrorWithMessage(/cannot be found/);
     });
   });
 });

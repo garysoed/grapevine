@@ -1,4 +1,5 @@
 import { assert, should } from 'gs-testing/export/main';
+import { createSpy, fake, resetCalls, Spy } from 'gs-testing/export/spy';
 import { ImmutableSet } from 'gs-tools/export/collect';
 import { NumberType } from 'gs-types/export';
 import { NodeId } from '../component/node-id';
@@ -15,7 +16,7 @@ class TestNode extends StaticNode<number> {
   constructor(
       time: Time,
       id: NodeId<number>,
-      private readonly computeValueHandler_: jasmine.Spy) {
+      private readonly computeValueHandler_: Spy) {
     super(time, id);
   }
 
@@ -48,13 +49,13 @@ describe('node.StaticNode', () => {
           () => 2);
 
       const value = 123;
-      const mockComputeValueHandler = jasmine.createSpy('ComputeValueHandler');
-      mockComputeValueHandler.and.returnValue(value);
+      const mockComputeValueHandler = createSpy('ComputeValueHandler');
+      fake(mockComputeValueHandler).always().return(value);
 
       const node = new TestNode(time0, id, mockComputeValueHandler);
       spyOn(node, 'getSources').and.returnValue(ImmutableSet.of([sourceNode, futureSourceNode]));
 
-      assert(await node.getValue(time2)).to.be(value);
+      assert(await node.getValue(time2)).to.equal(value);
       assert(mockComputeValueHandler).to.haveBeenCalledWith(time1);
     });
 
@@ -71,16 +72,16 @@ describe('node.StaticNode', () => {
       sourceNode.setValue(3, time1);
 
       const value = 123;
-      const mockComputeValueHandler = jasmine.createSpy('ComputeValueHandler');
-      mockComputeValueHandler.and.returnValue(value);
+      const mockComputeValueHandler = createSpy('ComputeValueHandler');
+      fake(mockComputeValueHandler).always().return(value);
 
       const node = new TestNode(time0, id, mockComputeValueHandler);
       spyOn(node, 'getSources').and.returnValue(ImmutableSet.of([sourceNode]));
 
       await node.getValue(time2);
-      mockComputeValueHandler.calls.reset();
+      resetCalls(mockComputeValueHandler);
 
-      assert(await node.getValue(time2)).to.be(value);
+      assert(await node.getValue(time2)).to.equal(value);
       assert(mockComputeValueHandler).toNot.haveBeenCalled();
     });
 
@@ -95,13 +96,13 @@ describe('node.StaticNode', () => {
           () => 1);
       sourceNode.setValue(3, time1);
 
-      const mockComputeValueHandler = jasmine.createSpy('ComputeValueHandler');
-      mockComputeValueHandler.and.returnValue('value');
+      const mockComputeValueHandler = createSpy('ComputeValueHandler');
+      fake(mockComputeValueHandler).always().return('value');
 
       const node = new TestNode(time0, id, mockComputeValueHandler);
       spyOn(node, 'getSources').and.returnValue(ImmutableSet.of([sourceNode]));
 
-      await assert(node.getValue(time1)).to.rejectWithError(/Return type of value/);
+      await assert(node.getValue(time1)).to.rejectWithErrorMessage(/Return type of value/);
     });
   });
 });

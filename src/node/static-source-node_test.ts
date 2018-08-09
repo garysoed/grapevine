@@ -1,4 +1,5 @@
 import { assert, should } from 'gs-testing/export/main';
+import { createSpy, resetCalls } from 'gs-testing/export/spy';
 import { NumberType } from 'gs-types/export';
 import { staticSourceId } from '../component/static-source-id';
 import { Time } from '../component/time';
@@ -22,7 +23,7 @@ describe('node.StaticSourceNode', () => {
 
   describe('listen', () => {
     should(`call the handler when the value changes`, () => {
-      const mockListener = jasmine.createSpy('Listener');
+      const mockListener = createSpy('Listener');
       const newValue = 456;
       const unlisten = node.listen(mockListener);
       node.setValue(newValue, TIME.increment());
@@ -30,7 +31,7 @@ describe('node.StaticSourceNode', () => {
       assert(mockListener).to.haveBeenCalledWith(newValue);
 
       unlisten();
-      mockListener.calls.reset();
+      resetCalls(mockListener);
 
       node.setValue(789, TIME.increment().increment());
       assert(mockListener).toNot.haveBeenCalled();

@@ -55,7 +55,7 @@ describe('node.StaticStreamNode', () => {
           (a, b) => a * b,
           ImmutableList.of([sourceNodeA, sourceNodeB]));
 
-      assert(await node.getValue(time)).to.be(6);
+      assert(await node.getValue(time)).to.equal(6);
     });
 
     should(`handle promises correctly`, async () => {
@@ -69,7 +69,7 @@ describe('node.StaticStreamNode', () => {
           async (a, b) => a * b,
           ImmutableList.of([sourceNodeA, sourceNodeB]));
 
-      assert(await node.getValue(time)).to.be(6);
+      assert(await node.getValue(time)).to.equal(6);
     });
   });
 });

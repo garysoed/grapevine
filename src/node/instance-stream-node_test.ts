@@ -64,7 +64,7 @@ describe('node.InstanceStreamNode', () => {
           (a, b) => a * b,
           ImmutableList.of([sourceNodeA, sourceNodeB]));
 
-      assert(await node.getValue(new BaseDisposable(), time)).to.be(6);
+      assert(await node.getValue(new BaseDisposable(), time)).to.equal(6);
     });
 
     should(`handle promises correctly`, async () => {
@@ -84,7 +84,7 @@ describe('node.InstanceStreamNode', () => {
           async (a, b) => a * b,
           ImmutableList.of([sourceNodeA, sourceNodeB]));
 
-      assert(await node.getValue(new BaseDisposable(), time)).to.be(6);
+      assert(await node.getValue(new BaseDisposable(), time)).to.equal(6);
     });
   });
 });

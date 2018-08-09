@@ -1,7 +1,8 @@
 import 'jasmine';
 
-import { assert, should, wait } from 'gs-testing/export/main';
+import { assert, match, retryUntil, should } from 'gs-testing/export/main';
 import { MockTime } from 'gs-testing/export/mock';
+import { createSpy } from 'gs-testing/export/spy';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
 import { instanceSourceId } from '../component/instance-source-id';
@@ -24,7 +25,7 @@ describe('main.VineBuilder', () => {
     should(`register the source correctly`, async () => {
       const sourceId = instanceSourceId('sourceId', NumberType);
       const context = new BaseDisposable();
-      const mockHandler = jasmine.createSpy('Handler');
+      const mockHandler = createSpy('Handler');
       const initValue = 123;
       const value = 456;
 
@@ -38,8 +39,9 @@ describe('main.VineBuilder', () => {
       });
 
       mockTime.at(1, async () => {
-        await wait(mockHandler).to.haveBeenCalledWith(initValue);
-        await wait(mockHandler).to.haveBeenCalledWith(value);
+        await retryUntil(() => mockHandler)
+            .to.equal(match.anySpyThat().haveBeenCalledWith(initValue));
+        await retryUntil(() => mockHandler).to.equal(match.anySpyThat().haveBeenCalledWith(value));
       });
 
       await mockTime.run();
@@ -51,7 +53,7 @@ describe('main.VineBuilder', () => {
 
       assert(() => {
         builder.source(sourceId, 456);
-      }).to.throwError(/have been registered/);
+      }).to.throwErrorWithMessage(/have been registered/);
     });
   });
 
@@ -78,9 +80,9 @@ describe('main.VineBuilder', () => {
       const gId = instanceStreamId('g', NumberType);
       const hId = instanceSourceId('h', NumberType);
 
-      const mockMainHandler = jasmine.createSpy('MainHandler');
-      const mockCHandler = jasmine.createSpy('CHandler');
-      const mockGHandler = jasmine.createSpy('GHandler');
+      const mockMainHandler = createSpy('MainHandler');
+      const mockCHandler = createSpy('CHandler');
+      const mockGHandler = createSpy('GHandler');
       const context = new BaseDisposable();
 
       builder.stream(mainId, (value: number) => `${value}`, aId);
@@ -108,13 +110,15 @@ describe('main.VineBuilder', () => {
       // Set expectations.
       mockTime.at(1, async () => {
         assert(await vine.getLatest($vine)).to.equal(vine);
-        await wait(mockMainHandler).to.haveBeenCalledWith('27');
-        await wait(mockCHandler).to.haveBeenCalledWith(9);
-        await wait(mockGHandler).to.haveBeenCalledWith(13);
+        await retryUntil(() => mockMainHandler)
+            .to.equal(match.anySpyThat().haveBeenCalledWith('27'));
+        await retryUntil(() => mockCHandler).to.equal(match.anySpyThat().haveBeenCalledWith(9));
+        await retryUntil(() => mockGHandler).to.equal(match.anySpyThat().haveBeenCalledWith(13));
       });
       mockTime.at(3, async () => {
-        await wait(mockMainHandler).to.haveBeenCalledWith('63');
-        await wait(mockGHandler).to.haveBeenCalledWith(15);
+        await retryUntil(() => mockMainHandler)
+            .to.equal(match.anySpyThat().haveBeenCalledWith('63'));
+        await retryUntil(() => mockGHandler).to.equal(match.anySpyThat().haveBeenCalledWith(15));
       });
       await mockTime.run();
     });
@@ -127,7 +131,7 @@ describe('main.VineBuilder', () => {
 
       assert(() => {
         builder.stream(id, v => v, vId);
-      }).to.throwError(/been registered/);
+      }).to.throwErrorWithMessage(/been registered/);
     });
 
     should(`throw error if a dependency node cannot be found`, () => {
@@ -138,7 +142,7 @@ describe('main.VineBuilder', () => {
 
       assert(() => {
         builder.run();
-      }).to.throwError(/not found/);
+      }).to.throwErrorWithMessage(/not found/);
     });
 
     should(`throw error if the nodes form a cycle`, () => {
@@ -152,7 +156,7 @@ describe('main.VineBuilder', () => {
 
       assert(() => {
         builder.run();
-      }).to.throwError(/cyclic dependency/i);
+      }).to.throwErrorWithMessage(/cyclic dependency/i);
     });
   });
 });
