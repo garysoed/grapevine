@@ -18,12 +18,15 @@ class TestNode extends InstanceNode<number> {
   constructor(
       time: Time,
       id: NodeId<number>,
-      private readonly computeValueHandler_: Spy) {
+      private readonly computeValueHandler_: Spy<Promise<number>>) {
     super(time, id);
   }
 
   protected async computeValue_(context: BaseDisposable, time: Time): Promise<number> {
-    return this.computeValueHandler_(context, time);
+    // tslint:disable-next-line:no-non-null-assertion
+    const value = await this.computeValueHandler_(context, time)!;
+
+    return value;
   }
 
   getSources(): ImmutableSet<InstanceSourceNode<any> | StaticSourceNode<any>> {
@@ -52,8 +55,8 @@ describe('node.InstanceNode', () => {
           () => 2);
 
       const value = 123;
-      const mockComputeValueHandler = createSpy('ComputeValueHandler');
-      fake(mockComputeValueHandler).always().return(value);
+      const mockComputeValueHandler = createSpy<Promise<number>>('ComputeValueHandler');
+      fake(mockComputeValueHandler).always().return(Promise.resolve(value));
 
       const node = new TestNode(time0, id, mockComputeValueHandler);
       spyOn(node, 'getSources').and.returnValue(ImmutableSet.of([sourceNode, futureSourceNode]));
@@ -76,8 +79,8 @@ describe('node.InstanceNode', () => {
       sourceNode.setValue(3, context, time1);
 
       const value = 123;
-      const mockComputeValueHandler = createSpy('ComputeValueHandler');
-      fake(mockComputeValueHandler).always().return(value);
+      const mockComputeValueHandler = createSpy<Promise<number>>('ComputeValueHandler');
+      fake(mockComputeValueHandler).always().return(Promise.resolve(value));
 
       const node = new TestNode(time0, id, mockComputeValueHandler);
       spyOn(node, 'getSources').and.returnValue(ImmutableSet.of([sourceNode]));
@@ -101,8 +104,8 @@ describe('node.InstanceNode', () => {
           () => 1);
       sourceNode.setValue(3, context, time1);
 
-      const mockComputeValueHandler = createSpy('ComputeValueHandler');
-      fake(mockComputeValueHandler).always().return('value');
+      const mockComputeValueHandler = createSpy<Promise<number>>('ComputeValueHandler');
+      fake(mockComputeValueHandler).always().return(Promise.resolve('value' as any));
 
       const node = new TestNode(time0, id, mockComputeValueHandler);
       spyOn(node, 'getSources').and.returnValue(ImmutableSet.of([sourceNode]));
