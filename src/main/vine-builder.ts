@@ -28,6 +28,7 @@ import { VineImpl } from './vine-impl';
 
 type StreamNode<T> = InstanceStreamNode<T>|StaticStreamNode<T>;
 type SourceRegistrationNode<T> = StaticSourceRegistrationNode<T>|InstanceSourceRegistrationNode<T>;
+type OnRunFn = (vine: VineImpl) => unknown;
 
 const streamIdType = UnionType<StreamId<any>>([
   InstanceofType(InstanceStreamId),
@@ -116,6 +117,7 @@ function sortRegistrationMap(registrationMap: Map<StreamId<any>, StreamRegistrat
  */
 export class VineBuilder {
   private readonly currentTime_: Time = Time.new();
+  private readonly onRunSet_: Set<OnRunFn> = new Set();
   private readonly registeredSources_: Map<SourceId<any>, SourceRegistrationNode<any>> = new Map();
   private readonly registeredStreams_: Map<StreamId<any>, StreamRegistrationNode<any>> = new Map();
 
@@ -136,6 +138,18 @@ export class VineBuilder {
 
   genericStream<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: NodeId<any>[]): void {
     this.stream_(nodeId, provider, ...args);
+  }
+
+  isRegistered(nodeId: SourceId<unknown>|StreamId<unknown>): boolean {
+    if (nodeId instanceof StaticStreamId || nodeId instanceof InstanceStreamId) {
+      return this.registeredStreams_.has(nodeId);
+    } else {
+      return this.registeredSources_.has(nodeId);
+    }
+  }
+
+  onRun(callback: (vine: VineImpl) => unknown): void {
+    this.onRunSet_.add(callback);
   }
 
   run(): VineImpl {
@@ -197,6 +211,10 @@ export class VineBuilder {
         ImmutableMap.of(sourceMap),
         ImmutableMap.of(streamMap),
         this.window_);
+
+    for (const onRun of this.onRunSet_) {
+      onRun(vine);
+    }
 
     return vine;
   }

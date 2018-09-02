@@ -5,7 +5,7 @@ import { NodeId } from '../component/node-id';
 import { VineBuilder } from '../main/vine-builder';
 import { VineInData } from './vine-in';
 
-export type VineOut = (instanceId: InstanceStreamId<any>) => MethodDecorator;
+export type VineOut = (instanceId: InstanceStreamId<any>) => PropertyDecorator;
 
 export function vineOutFactory(
     annotationsCache: Annotations<VineInData>,
@@ -22,7 +22,10 @@ export function vineOutFactory(
         paramsArray[index] = id;
       }
 
-      const handler = (target as any)[propertyKey];
+      // tslint:disable-next-line:typedef
+      const handler = (target as any)[propertyKey] || function(this: any) {
+        return this[propertyKey];
+      };
       if (!(handler instanceof Function)) {
         throw Errors.assert(`Type of ${target.constructor.name}.${propertyKey.toString()}`)
             .shouldBe('a function')
