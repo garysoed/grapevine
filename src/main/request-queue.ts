@@ -8,7 +8,7 @@ type SetRequest = (time: Time) => void;
  * Queue that batches requests and processes them asynchronously.
  */
 export class RequestQueue extends BaseDisposable {
-  private readonly requests_: Map<SourceNode<unknown>, SetRequest> = new Map();
+  private readonly requests_: Map<SourceNode<unknown>, Map<BaseDisposable, SetRequest>> = new Map();
   private timerId_: number|null = null;
 
   constructor(
@@ -21,8 +21,10 @@ export class RequestQueue extends BaseDisposable {
     const time = this.time_.increment();
     this.time_ = time;
 
-    for (const [, request] of this.requests_) {
-      request(time);
+    for (const [, contextMap] of this.requests_) {
+      for (const [, request] of contextMap) {
+        request(time);
+      }
     }
 
     this.requests_.clear();
@@ -33,8 +35,10 @@ export class RequestQueue extends BaseDisposable {
     return this.time_;
   }
 
-  queue(key: SourceNode<unknown>, request: SetRequest): void {
-    this.requests_.set(key, request);
+  queue(key: SourceNode<unknown>, context: BaseDisposable, request: SetRequest): void {
+    const contextMap = this.requests_.get(key) || new Map<BaseDisposable, SetRequest>();
+    contextMap.set(context, request);
+    this.requests_.set(key, contextMap);
     if (this.timerId_ === null) {
       this.timerId_ = this.window_.setTimeout(() => this.flushQueue_(), 0);
     }

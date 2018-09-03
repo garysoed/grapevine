@@ -44,4 +44,8 @@ export class InstanceSourceNode<T> extends InstanceNode<T> {
       listener(newValue);
     }
   }
+
+  toString(): string {
+    return `InstanceSourceNode(${this.id_})`;
+  }
 }

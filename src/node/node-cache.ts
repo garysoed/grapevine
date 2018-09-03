@@ -1,21 +1,21 @@
 import { BaseDisposable, DisposableFunction } from 'gs-tools/export/dispose';
 import { Time } from '../component/time';
+import { ContextedNodeCache } from './contexted-node-cache';
 
 /**
  * Cache mechanism for nodes.
  */
 export class NodeCache<T> {
   // Map of context to Time to the value at that time.
-  private readonly cache_: Map<BaseDisposable, Map<Time, Promise<T>>> = new Map();
-  private latestTime_: Time|null = null;
+  private readonly cache_: Map<BaseDisposable, ContextedNodeCache<T>> = new Map();
 
-  private getCacheByContext_(context: BaseDisposable): Map<Time, Promise<T>> {
+  private getCacheByContext_(context: BaseDisposable): ContextedNodeCache<T> {
     const cache = this.cache_.get(context);
     if (cache) {
       return cache;
     }
 
-    const newCache = new Map<Time, Promise<T>>();
+    const newCache = new ContextedNodeCache<T>();
     this.cache_.set(context, newCache);
     context.addDisposable(DisposableFunction.of(() => {
       this.cache_.delete(context);
@@ -30,34 +30,21 @@ export class NodeCache<T> {
       return undefined;
     }
 
-    return timeCache.get(time);
+    return timeCache.getCachedValue(time);
   }
 
   getLatestCachedTimeBefore(context: BaseDisposable, thresholdTime: Time): Time | null {
-    const valueMap = this.cache_.get(context);
-    if (!valueMap) {
+    const contextedNodeCache = this.cache_.get(context);
+    if (!contextedNodeCache) {
       return null;
     }
 
-    let latestCachedTime = null;
-    for (const [time] of valueMap) {
-      if (time.beforeOrEqualTo(thresholdTime) &&
-          (latestCachedTime === null || latestCachedTime.before(time))) {
-        latestCachedTime = time;
-      }
-    }
-
-    return latestCachedTime;
+    return contextedNodeCache.getLatestCachedTimeBefore(thresholdTime);
   }
 
   setCachedValue(newValue: Promise<T>, context: BaseDisposable, time: Time): void {
-    if (this.latestTime_ && time.beforeOrEqualTo(this.latestTime_)) {
-      return;
-    }
-
-    const timeMap = this.getCacheByContext_(context);
-    timeMap.set(time, newValue);
-    this.cache_.set(context, timeMap);
-    this.latestTime_ = time;
+    const contextedNodeCache = this.getCacheByContext_(context);
+    contextedNodeCache.setCachedValue(newValue, time);
+    this.cache_.set(context, contextedNodeCache);
   }
 }
