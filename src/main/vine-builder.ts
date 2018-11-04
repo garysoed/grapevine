@@ -10,9 +10,6 @@ import { SourceId } from '../component/source-id';
 import { StaticSourceId } from '../component/static-source-id';
 import { StaticStreamId } from '../component/static-stream-id';
 import { StreamId } from '../component/stream-id';
-import { Time } from '../component/time';
-import { InstanceStreamNode } from '../node/instance-stream-node';
-import { StaticStreamNode } from '../node/static-stream-node';
 import { InstanceSourceRegistrationNode } from '../registration/instance-source-registration-node';
 import { StaticSourceRegistrationNode } from '../registration/static-source-registration-node';
 import { StreamRegistrationNode } from '../registration/stream-registration-node';
@@ -28,7 +25,6 @@ import { StreamSubject } from '../subject/stream-subject';
 import { $vine } from './vine-id';
 import { VineImpl } from './vine-impl';
 
-type StreamNode<T> = InstanceStreamNode<T>|StaticStreamNode<T>;
 type SourceRegistrationNode<T> = StaticSourceRegistrationNode<T>|InstanceSourceRegistrationNode<T>;
 type OnRunFn = (vine: VineImpl) => unknown;
 
@@ -60,7 +56,6 @@ interface StreamTreeNode {
  * Class to set up Grapevine.
  */
 export class VineBuilder {
-  private readonly currentTime_: Time = Time.new();
   private readonly onRunSet_: Set<OnRunFn> = new Set();
   private readonly registeredSources_: Map<SourceId<any>, SourceRegistrationNode<any>> = new Map();
   private readonly registeredStreams_: Map<StreamId<any>, StreamRegistrationNode<any>> = new Map();
@@ -145,10 +140,9 @@ export class VineBuilder {
     sourceMap.set($vine, vineNode);
 
     vine = new VineImpl(
-        this.currentTime_,
         ImmutableMap.of(sourceMap),
         ImmutableMap.of(streamMap),
-        this.window_);
+    );
 
     for (const onRun of this.onRunSet_) {
       onRun(vine);
@@ -175,13 +169,11 @@ export class VineBuilder {
       sourceRegistrationNode = {
         id: nodeId,
         initProvider: provider,
-        initTime: this.currentTime_,
       };
     } else {
       sourceRegistrationNode = {
         id: nodeId,
         initProvider: provider,
-        initTime: this.currentTime_,
       };
     }
 
@@ -232,7 +224,6 @@ export class VineBuilder {
     const streamRegistration = {
       dependencies: ImmutableList.of(args),
       id: nodeId,
-      initTime: this.currentTime_,
       providerFn: provider,
     };
     if (this.registeredStreams_.has(nodeId)) {

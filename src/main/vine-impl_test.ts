@@ -10,7 +10,6 @@ import { instanceStreamId } from '../component/instance-stream-id';
 import { SourceId } from '../component/source-id';
 import { staticSourceId } from '../component/static-source-id';
 import { staticStreamId } from '../component/static-stream-id';
-import { Time } from '../component/time';
 import { InstanceSourceSubject } from '../subject/instance-source-subject';
 import { InstanceStreamSubject } from '../subject/instance-stream-subject';
 import { SourceSubject } from '../subject/source-subject';
@@ -21,7 +20,6 @@ import { VineImpl } from './vine-impl';
 describe('main.VineImpl', () => {
   describe('listen', () => {
     should(`call the handler correctly for static source IDs`, () => {
-      const time = Time.new();
       const id1 = staticSourceId('id1', NumberType);
       const id2 = staticSourceId('id2', StringType);
       const initValue1 = 1;
@@ -33,13 +31,12 @@ describe('main.VineImpl', () => {
       const sourceSubject2 = new StaticSourceSubject(() => initValue2);
 
       const vine = new VineImpl(
-          time,
           ImmutableMap.of<SourceId<any>, SourceSubject<any>>([
             [id1, sourceSubject1],
             [id2, sourceSubject2],
           ]),
           ImmutableMap.of(),
-          window);
+      );
 
       const mockHandler = createSpy('Handler');
       const unlistenFn = vine.listen(mockHandler, id1, id2);
@@ -59,7 +56,6 @@ describe('main.VineImpl', () => {
     });
 
     should(`call the handler correctly for instance source IDs`, () => {
-      const time = Time.new();
       const id1 = instanceSourceId('id1', NumberType);
       const id2 = staticSourceId('id2', StringType);
       const initValue1 = 1;
@@ -72,13 +68,12 @@ describe('main.VineImpl', () => {
       const context = new BaseDisposable();
 
       const vine = new VineImpl(
-          time,
           ImmutableMap.of<SourceId<any>, SourceSubject<any>>([
             [id1, sourceSubject1],
             [id2, sourceSubject2],
           ]),
           ImmutableMap.of(),
-          window);
+      );
 
       const mockHandler = createSpy('Handler');
       const unlistenFn = vine.listen(mockHandler, context, id1, id2);
@@ -98,7 +93,6 @@ describe('main.VineImpl', () => {
     });
 
     should(`call the handler correctly for static stream IDs`, () => {
-      const time = Time.new();
       const sourceId = staticSourceId('sourceId', NumberType);
       const sourceSubject = new StaticSourceSubject(() => 1);
 
@@ -111,10 +105,9 @@ describe('main.VineImpl', () => {
       const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
-          time,
           ImmutableMap.of([[sourceId, sourceSubject]]),
           ImmutableMap.of([[id, streamSubject]]),
-          window);
+      );
 
       const unlistenFn = vine.listen(mockHandler, id);
       assert(mockHandler).to.haveBeenCalledWith(1);
@@ -129,7 +122,6 @@ describe('main.VineImpl', () => {
     });
 
     should(`call the handler correctly for instance stream IDs`, () => {
-      const time = Time.new();
       const sourceId = instanceSourceId('sourceId', NumberType);
       const sourceSubject = new InstanceSourceSubject(() => 1);
 
@@ -143,10 +135,9 @@ describe('main.VineImpl', () => {
       const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
-          time,
           ImmutableMap.of([[sourceId, sourceSubject]]),
           ImmutableMap.of([[id, streamSubject]]),
-          window);
+      );
 
       const unlistenFn = vine.listen(mockHandler, context, id);
       assert(mockHandler).to.haveBeenCalledWith(1);
@@ -163,10 +154,9 @@ describe('main.VineImpl', () => {
     should(`throw error if the node cannot be found`, () => {
       const nodeId = staticSourceId('sourceId', NumberType);
       const vine = new VineImpl(
-          Time.new(),
           ImmutableMap.of(),
           ImmutableMap.of(),
-          window);
+      );
 
       assert(() => {
         vine.listen(() => undefined, nodeId);
@@ -176,16 +166,14 @@ describe('main.VineImpl', () => {
 
   describe('setValue', () => {
     should(`set the value correctly for static source nodes`, () => {
-      const time = Time.new();
       const id = staticSourceId('id', NumberType);
       const value = 2;
       const sourceSubject = new StaticSourceSubject(() => 1);
 
       const vine = new VineImpl(
-          time,
           ImmutableMap.of([[id, sourceSubject]]),
           ImmutableMap.of(),
-          window);
+      );
 
       const mockHandler = createSpy('Handler');
       vine.listen(mockHandler, id);
@@ -195,17 +183,15 @@ describe('main.VineImpl', () => {
     });
 
     should(`not set the value for static source nodes if they are the same`, () => {
-      const time = Time.new();
       const id = staticSourceId('id', NumberType);
       const value = 2;
       const sourceSubject = new StaticSourceSubject(() => 1);
       const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
-          time,
           ImmutableMap.of([[id, sourceSubject]]),
           ImmutableMap.of(),
-          window);
+      );
 
       vine.setValue(id, value);
       vine.listen(mockHandler, id);
@@ -215,17 +201,15 @@ describe('main.VineImpl', () => {
     });
 
     should(`set the value correctly for instance source nodes`, () => {
-      const time = Time.new();
       const id = instanceSourceId('id', NumberType);
       const value = 2;
       const sourceSubject = new InstanceSourceSubject(() => 1);
       const context = new BaseDisposable();
 
       const vine = new VineImpl(
-          time,
           ImmutableMap.of([[id, sourceSubject]]),
           ImmutableMap.of(),
-          window);
+      );
 
       const mockHandler = createSpy('Handler');
       vine.listen(mockHandler, context, id);
@@ -235,7 +219,6 @@ describe('main.VineImpl', () => {
     });
 
     should(`not set the value for instance source nodes if they are the same`, () => {
-      const time = Time.new();
       const id = instanceSourceId('id', NumberType);
       const value = 2;
       const sourceSubject = new InstanceSourceSubject(() => 1);
@@ -243,10 +226,9 @@ describe('main.VineImpl', () => {
       const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
-          time,
           ImmutableMap.of([[id, sourceSubject]]),
           ImmutableMap.of(),
-          window);
+      );
 
       vine.setValue(id, value, context);
       vine.listen(mockHandler, context, id);
@@ -258,10 +240,9 @@ describe('main.VineImpl', () => {
     should(`throw error if the node cannot be found`, () => {
       const nodeId = staticSourceId('sourceId', NumberType);
       const vine = new VineImpl(
-          Time.new(),
           ImmutableMap.of(),
           ImmutableMap.of(),
-          window);
+      );
 
       assert(() => {
         vine.setValue(nodeId, 12);

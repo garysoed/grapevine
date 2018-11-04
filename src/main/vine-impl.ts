@@ -8,7 +8,6 @@ import { SourceId } from '../component/source-id';
 import { StaticSourceId } from '../component/static-source-id';
 import { StaticStreamId } from '../component/static-stream-id';
 import { StreamId } from '../component/stream-id';
-import { Time } from '../component/time';
 import { GLOBAL_CONTEXT } from '../node/global-context';
 import { InstanceSourceSubject } from '../subject/instance-source-subject';
 import { InstanceStreamSubject } from '../subject/instance-stream-subject';
@@ -16,7 +15,6 @@ import { SourceSubject } from '../subject/source-subject';
 import { StaticSourceSubject } from '../subject/static-source-subject';
 import { StaticStreamSubject } from '../subject/static-stream-subject';
 import { StreamSubject } from '../subject/stream-subject';
-import { RequestQueue } from './request-queue';
 
 type AnySubject<T> = InstanceSourceSubject<T>|InstanceStreamSubject<T>|
     StaticSourceSubject<T>|StaticStreamSubject<T>;
@@ -25,14 +23,9 @@ type AnySubject<T> = InstanceSourceSubject<T>|InstanceStreamSubject<T>|
  * Runtime implementation of Grapevine.
  */
 export class VineImpl {
-  private readonly requestQueue_: RequestQueue;
-
   constructor(
-      time: Time,
       private readonly sourceMap_: ImmutableMap<SourceId<any>, SourceSubject<any>>,
-      private readonly streamMap_: ImmutableMap<StreamId<any>, StreamSubject<any>>,
-      window: Window) {
-    this.requestQueue_ = new RequestQueue(time, window);
+      private readonly streamMap_: ImmutableMap<StreamId<any>, StreamSubject<any>>) {
   }
 
   /**

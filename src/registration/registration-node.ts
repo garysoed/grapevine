@@ -6,5 +6,4 @@ import { Time } from '../component/time';
  */
 export interface RegistrationNode<T> {
   readonly id: NodeId<T>;
-  readonly initTime: Time;
 }
