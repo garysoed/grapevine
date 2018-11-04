@@ -59,7 +59,7 @@ function sortRegistrationMap(registrationMap: Map<StreamId<any>, StreamRegistrat
     const parent = treeNodes.get(id) || {children: new Set(), parents: new Set(), value: id};
 
     // Add the dependencies.
-    for (const childId of registration.getDependencies()) {
+    for (const childId of registration.dependencies) {
       if (!streamIdType.check(childId)) {
         continue;
       }
@@ -127,12 +127,12 @@ export class VineBuilder {
       sourceId: InstanceSourceId<any>|StaticSourceId<any>,
       registration: SourceRegistrationNode<any>): SourceNode<any> {
     if (sourceId instanceof InstanceSourceId) {
-      return new InstanceSourceNode(sourceId, this.currentTime_, registration.getInitProvider());
+      return new InstanceSourceNode(sourceId, this.currentTime_, registration.initProvider);
     } else {
       return new StaticSourceNode(
           sourceId,
           this.currentTime_,
-          () => registration.getInitProvider()(GLOBAL_CONTEXT));
+          registration.initProvider as StaticSourceProvider<any>);
     }
   }
 
@@ -161,7 +161,7 @@ export class VineBuilder {
     const sortedStreams = sortRegistrationMap(this.registeredStreams_);
     const streamMap = new Map<StreamId<any>, StreamNode<any>>();
     for (const [streamId, registration] of sortedStreams) {
-      const dependencyNodes = registration.getDependencies()
+      const dependencyNodes = registration.dependencies
           .mapItem(id => {
             let dependency = null;
             if (sourceIdType.check(id)) {
@@ -184,7 +184,7 @@ export class VineBuilder {
         streamNode = new InstanceStreamNode(
             streamId,
             this.currentTime_,
-            registration.getProvider(),
+            registration.providerFn,
             dependencyNodes);
       } else {
         if (!staticStreamDependencyType.check(dependencyNodes)) {
@@ -195,7 +195,7 @@ export class VineBuilder {
         streamNode = new StaticStreamNode(
             streamId,
             this.currentTime_,
-            registration.getProvider(),
+            registration.providerFn,
             dependencyNodes);
       }
       streamMap.set(streamId, streamNode);
@@ -234,15 +234,17 @@ export class VineBuilder {
 
     let sourceRegistrationNode;
     if (nodeId instanceof StaticSourceId) {
-      sourceRegistrationNode = new StaticSourceRegistrationNode(
-          this.currentTime_,
-          nodeId,
-          provider as StaticSourceProvider<T>);
+      sourceRegistrationNode = {
+        id: nodeId,
+        initProvider: provider as StaticSourceProvider<T>,
+        initTime: this.currentTime_,
+      };
     } else {
-      sourceRegistrationNode = new InstanceSourceRegistrationNode(
-          this.currentTime_,
-          nodeId,
-          provider);
+      sourceRegistrationNode = {
+        id: nodeId,
+        initProvider: provider,
+        initTime: this.currentTime_,
+      };
     }
 
     this.registeredSources_.set(nodeId, sourceRegistrationNode);
@@ -289,8 +291,12 @@ export class VineBuilder {
   }
 
   stream_<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: NodeId<any>[]): void {
-    const streamRegistration = new StreamRegistrationNode(
-        this.currentTime_, nodeId, provider, args);
+    const streamRegistration = {
+      dependencies: ImmutableList.of(args),
+      id: nodeId,
+      initTime: this.currentTime_,
+      providerFn: provider,
+    };
     if (this.registeredStreams_.has(nodeId)) {
       throw Errors.assert(`node ${nodeId}`).should('not have been registered').butWas('');
     }

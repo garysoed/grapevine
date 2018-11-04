@@ -1,6 +1,5 @@
-import { match, retryUntil } from 'gs-testing/export/main';
+import { match, retryUntil, should } from 'gs-testing/export/main';
 import { createSpy } from 'gs-testing/export/spy';
-import { should } from 'gs-testing/src/main/run';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
 import { instanceSourceId } from '../component/instance-source-id';
