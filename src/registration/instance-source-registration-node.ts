@@ -1,4 +1,4 @@
-import { InstanceSourceProvider } from '../subject/instance-source-provider';
+import { InstanceSourceProvider } from '../node/instance-source-provider';
 import { RegistrationNode } from './registration-node';
 
 /**

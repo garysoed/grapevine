@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
 
-export interface StaticSubject<T> {
+export interface StaticNode<T> {
   getObs(): Observable<T>;
 }

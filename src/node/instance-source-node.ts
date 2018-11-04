@@ -1,10 +1,10 @@
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, shareReplay } from 'rxjs/operators';
+import { InstanceNode } from './instance-node';
 import { InstanceSourceProvider } from './instance-source-provider';
-import { InstanceSubject } from './instance-subject';
 
-export class InstanceSourceSubject<T> implements InstanceSubject<T> {
+export class InstanceSourceNode<T> implements InstanceNode<T> {
   private readonly subjects_: WeakMap<BaseDisposable, BehaviorSubject<T>> = new WeakMap();
 
   constructor(

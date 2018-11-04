@@ -10,18 +10,18 @@ import { SourceId } from '../component/source-id';
 import { StaticSourceId } from '../component/static-source-id';
 import { StaticStreamId } from '../component/static-stream-id';
 import { StreamId } from '../component/stream-id';
+import { InstanceSourceNode } from '../node/instance-source-node';
+import { InstanceSourceProvider } from '../node/instance-source-provider';
+import { InstanceStreamNode } from '../node/instance-stream-node';
+import { SourceNode } from '../node/source-node';
+import { StaticNode } from '../node/static-node';
+import { StaticSourceNode } from '../node/static-source-node';
+import { StaticSourceProvider } from '../node/static-source-provider';
+import { StaticStreamNode } from '../node/static-stream-node';
+import { StreamNode } from '../node/stream-node';
 import { InstanceSourceRegistrationNode } from '../registration/instance-source-registration-node';
 import { StaticSourceRegistrationNode } from '../registration/static-source-registration-node';
 import { StreamRegistrationNode } from '../registration/stream-registration-node';
-import { InstanceSourceProvider } from '../subject/instance-source-provider';
-import { InstanceSourceSubject } from '../subject/instance-source-subject';
-import { InstanceStreamSubject } from '../subject/instance-stream-subject';
-import { SourceSubject } from '../subject/source-subject';
-import { StaticSourceProvider } from '../subject/static-source-provider';
-import { StaticSourceSubject } from '../subject/static-source-subject';
-import { StaticStreamSubject } from '../subject/static-stream-subject';
-import { StaticSubject } from '../subject/static-subject';
-import { StreamSubject } from '../subject/stream-subject';
 import { $vine } from './vine-id';
 import { VineImpl } from './vine-impl';
 
@@ -37,10 +37,10 @@ const sourceIdType = UnionType<SourceId<any>>([
   InstanceofType(StaticSourceId),
 ]);
 const staticStreamDependencyType =
-    IterableOfType<StaticSubject<any>, ImmutableList<StaticSubject<any>>>(
+    IterableOfType<StaticNode<any>, ImmutableList<StaticNode<any>>>(
         UnionType([
-          InstanceofType(StaticStreamSubject),
-          InstanceofType(StaticSourceSubject),
+          InstanceofType(StaticStreamNode),
+          InstanceofType(StaticSourceNode),
         ]));
 
 /**
@@ -62,16 +62,6 @@ export class VineBuilder {
 
   constructor(private readonly window_: Window = window) { }
 
-  private createSourceSubject_<T>(
-      sourceId: InstanceSourceId<T>|StaticSourceId<T>,
-      registration: SourceRegistrationNode<T>): SourceSubject<T> {
-    if (sourceId instanceof InstanceSourceId) {
-      return new InstanceSourceSubject(registration.initProvider);
-    } else {
-      return new StaticSourceSubject(registration.initProvider as StaticSourceProvider<T>);
-    }
-  }
-
   genericStream<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: NodeId<any>[]): void {
     this.stream_(nodeId, provider, ...args);
   }
@@ -89,15 +79,15 @@ export class VineBuilder {
   }
 
   run(): VineImpl {
-    const sourceMap = new Map<SourceId<any>, SourceSubject<any>>();
+    const sourceMap = new Map<SourceId<any>, SourceNode<any>>();
     for (const [sourceId, registration] of this.registeredSources_) {
-      sourceMap.set(sourceId, this.createSourceSubject_(sourceId, registration));
+      sourceMap.set(sourceId, createSourceNode_(sourceId, registration));
     }
 
     const sortedStreams = sortRegistrationMap(this.registeredStreams_);
-    const streamMap = new Map<StreamId<any>, StreamSubject<any>>();
+    const streamMap = new Map<StreamId<any>, StreamNode<any>>();
     for (const [streamId, registration] of sortedStreams) {
-      const dependencyNodes: ImmutableList<SourceSubject<any>|StreamSubject<any>> =
+      const dependencyNodes: ImmutableList<SourceNode<any>|StreamNode<any>> =
           registration.dependencies
               .mapItem(id => {
                 let dependency = null;
@@ -118,7 +108,7 @@ export class VineBuilder {
 
       let streamNode;
       if (streamId instanceof InstanceStreamId) {
-        streamNode = new InstanceStreamSubject(
+        streamNode = new InstanceStreamNode(
             dependencyNodes,
             registration.providerFn);
       } else {
@@ -127,7 +117,7 @@ export class VineBuilder {
               .shouldBeA(staticStreamDependencyType).butWas(dependencyNodes);
         }
 
-        streamNode = new StaticStreamSubject(
+        streamNode = new StaticStreamNode(
             dependencyNodes,
             registration.providerFn);
       }
@@ -136,7 +126,7 @@ export class VineBuilder {
 
     // Add the VineNode.
     let vine: VineImpl;
-    const vineNode = new StaticSourceSubject(() => vine);
+    const vineNode = new StaticSourceNode(() => vine);
     sourceMap.set($vine, vineNode);
 
     vine = new VineImpl(
@@ -294,4 +284,14 @@ function sortRegistrationMap(registrationMap: Map<StreamId<any>, StreamRegistrat
   }
 
   return sortedStreams.reverse();
+}
+
+function createSourceNode_<T>(
+    sourceId: InstanceSourceId<T>|StaticSourceId<T>,
+    registration: SourceRegistrationNode<T>): SourceNode<T> {
+  if (sourceId instanceof InstanceSourceId) {
+    return new InstanceSourceNode(registration.initProvider);
+  } else {
+    return new StaticSourceNode(registration.initProvider as StaticSourceProvider<T>);
+  }
 }

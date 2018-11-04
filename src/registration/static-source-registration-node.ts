@@ -1,4 +1,4 @@
-import { StaticSourceProvider } from '../subject/static-source-provider';
+import { StaticSourceProvider } from '../node/static-source-provider';
 import { RegistrationNode } from './registration-node';
 
 /**

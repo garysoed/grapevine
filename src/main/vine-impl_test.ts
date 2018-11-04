@@ -10,11 +10,11 @@ import { instanceStreamId } from '../component/instance-stream-id';
 import { SourceId } from '../component/source-id';
 import { staticSourceId } from '../component/static-source-id';
 import { staticStreamId } from '../component/static-stream-id';
-import { InstanceSourceSubject } from '../subject/instance-source-subject';
-import { InstanceStreamSubject } from '../subject/instance-stream-subject';
-import { SourceSubject } from '../subject/source-subject';
-import { StaticSourceSubject } from '../subject/static-source-subject';
-import { StaticStreamSubject } from '../subject/static-stream-subject';
+import { InstanceSourceNode } from '../node/instance-source-node';
+import { InstanceStreamNode } from '../node/instance-stream-node';
+import { SourceNode } from '../node/source-node';
+import { StaticSourceNode } from '../node/static-source-node';
+import { StaticStreamNode } from '../node/static-stream-node';
 import { VineImpl } from './vine-impl';
 
 describe('main.VineImpl', () => {
@@ -27,11 +27,11 @@ describe('main.VineImpl', () => {
       const newValue1 = 2;
       const newValue2 = 'def';
       const newerValue = 4;
-      const sourceSubject1 = new StaticSourceSubject(() => initValue1);
-      const sourceSubject2 = new StaticSourceSubject(() => initValue2);
+      const sourceSubject1 = new StaticSourceNode(() => initValue1);
+      const sourceSubject2 = new StaticSourceNode(() => initValue2);
 
       const vine = new VineImpl(
-          ImmutableMap.of<SourceId<any>, SourceSubject<any>>([
+          ImmutableMap.of<SourceId<any>, SourceNode<any>>([
             [id1, sourceSubject1],
             [id2, sourceSubject2],
           ]),
@@ -63,12 +63,12 @@ describe('main.VineImpl', () => {
       const newValue1 = 2;
       const newValue2 = 'def';
       const newerValue = 4;
-      const sourceSubject1 = new InstanceSourceSubject(() => initValue1);
-      const sourceSubject2 = new StaticSourceSubject(() => initValue2);
+      const sourceSubject1 = new InstanceSourceNode(() => initValue1);
+      const sourceSubject2 = new StaticSourceNode(() => initValue2);
       const context = new BaseDisposable();
 
       const vine = new VineImpl(
-          ImmutableMap.of<SourceId<any>, SourceSubject<any>>([
+          ImmutableMap.of<SourceId<any>, SourceNode<any>>([
             [id1, sourceSubject1],
             [id2, sourceSubject2],
           ]),
@@ -94,10 +94,10 @@ describe('main.VineImpl', () => {
 
     should(`call the handler correctly for static stream IDs`, () => {
       const sourceId = staticSourceId('sourceId', NumberType);
-      const sourceSubject = new StaticSourceSubject(() => 1);
+      const sourceSubject = new StaticSourceNode(() => 1);
 
       const id = staticStreamId('streamId', NumberType);
-      const streamSubject = new StaticStreamSubject(
+      const streamSubject = new StaticStreamNode(
           ImmutableList.of([sourceSubject]),
           v => v * v,
       );
@@ -123,10 +123,10 @@ describe('main.VineImpl', () => {
 
     should(`call the handler correctly for instance stream IDs`, () => {
       const sourceId = instanceSourceId('sourceId', NumberType);
-      const sourceSubject = new InstanceSourceSubject(() => 1);
+      const sourceSubject = new InstanceSourceNode(() => 1);
 
       const id = instanceStreamId('streamId', NumberType);
-      const streamSubject = new InstanceStreamSubject(
+      const streamSubject = new InstanceStreamNode(
           ImmutableList.of([sourceSubject]),
           v => v * v,
           );
@@ -168,7 +168,7 @@ describe('main.VineImpl', () => {
     should(`set the value correctly for static source nodes`, () => {
       const id = staticSourceId('id', NumberType);
       const value = 2;
-      const sourceSubject = new StaticSourceSubject(() => 1);
+      const sourceSubject = new StaticSourceNode(() => 1);
 
       const vine = new VineImpl(
           ImmutableMap.of([[id, sourceSubject]]),
@@ -185,7 +185,7 @@ describe('main.VineImpl', () => {
     should(`not set the value for static source nodes if they are the same`, () => {
       const id = staticSourceId('id', NumberType);
       const value = 2;
-      const sourceSubject = new StaticSourceSubject(() => 1);
+      const sourceSubject = new StaticSourceNode(() => 1);
       const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
@@ -203,7 +203,7 @@ describe('main.VineImpl', () => {
     should(`set the value correctly for instance source nodes`, () => {
       const id = instanceSourceId('id', NumberType);
       const value = 2;
-      const sourceSubject = new InstanceSourceSubject(() => 1);
+      const sourceSubject = new InstanceSourceNode(() => 1);
       const context = new BaseDisposable();
 
       const vine = new VineImpl(
@@ -221,7 +221,7 @@ describe('main.VineImpl', () => {
     should(`not set the value for instance source nodes if they are the same`, () => {
       const id = instanceSourceId('id', NumberType);
       const value = 2;
-      const sourceSubject = new InstanceSourceSubject(() => 1);
+      const sourceSubject = new InstanceSourceNode(() => 1);
       const context = new BaseDisposable();
       const mockHandler = createSpy('Handler');
 

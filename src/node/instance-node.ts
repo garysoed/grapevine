@@ -1,6 +1,6 @@
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { Observable } from 'rxjs';
 
-export interface InstanceSubject<T> {
+export interface InstanceNode<T> {
   getObs(context: BaseDisposable): Observable<T>;
 }

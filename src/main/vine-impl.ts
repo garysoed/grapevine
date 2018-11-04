@@ -9,23 +9,23 @@ import { StaticSourceId } from '../component/static-source-id';
 import { StaticStreamId } from '../component/static-stream-id';
 import { StreamId } from '../component/stream-id';
 import { GLOBAL_CONTEXT } from '../node/global-context';
-import { InstanceSourceSubject } from '../subject/instance-source-subject';
-import { InstanceStreamSubject } from '../subject/instance-stream-subject';
-import { SourceSubject } from '../subject/source-subject';
-import { StaticSourceSubject } from '../subject/static-source-subject';
-import { StaticStreamSubject } from '../subject/static-stream-subject';
-import { StreamSubject } from '../subject/stream-subject';
+import { InstanceSourceNode } from '../node/instance-source-node';
+import { InstanceStreamNode } from '../node/instance-stream-node';
+import { SourceNode } from '../node/source-node';
+import { StaticSourceNode } from '../node/static-source-node';
+import { StaticStreamNode } from '../node/static-stream-node';
+import { StreamNode } from '../node/stream-node';
 
-type AnySubject<T> = InstanceSourceSubject<T>|InstanceStreamSubject<T>|
-    StaticSourceSubject<T>|StaticStreamSubject<T>;
+type AnySubject<T> = InstanceSourceNode<T>|InstanceStreamNode<T>|
+    StaticSourceNode<T>|StaticStreamNode<T>;
 
 /**
  * Runtime implementation of Grapevine.
  */
 export class VineImpl {
   constructor(
-      private readonly sourceMap_: ImmutableMap<SourceId<any>, SourceSubject<any>>,
-      private readonly streamMap_: ImmutableMap<StreamId<any>, StreamSubject<any>>) {
+      private readonly sourceMap_: ImmutableMap<SourceId<any>, SourceNode<any>>,
+      private readonly streamMap_: ImmutableMap<StreamId<any>, StreamNode<any>>) {
   }
 
   /**
@@ -125,7 +125,7 @@ export class VineImpl {
       throw new Error(`Source node for ${sourceId} cannot be found`);
     }
 
-    if (sourceSubject instanceof InstanceSourceSubject) {
+    if (sourceSubject instanceof InstanceSourceNode) {
       sourceSubject.next(context, newValue);
     } else {
       sourceSubject.next(newValue);
@@ -134,8 +134,8 @@ export class VineImpl {
 }
 
 function getObs<T>(subject: AnySubject<T>, context: BaseDisposable): Observable<T> {
-  if (subject instanceof InstanceSourceSubject ||
-      subject instanceof InstanceStreamSubject) {
+  if (subject instanceof InstanceSourceNode ||
+      subject instanceof InstanceStreamNode) {
     return subject.getObs(context);
   } else  {
     return subject.getObs();

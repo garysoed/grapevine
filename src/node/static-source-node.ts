@@ -1,10 +1,10 @@
 import { cache } from 'gs-tools/export/data';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { distinctUntilChanged, shareReplay, tap } from 'rxjs/operators';
+import { distinctUntilChanged, shareReplay } from 'rxjs/operators';
+import { StaticNode } from './static-node';
 import { StaticSourceProvider } from './static-source-provider';
-import { StaticSubject } from './static-subject';
 
-export class StaticSourceSubject<T> implements StaticSubject<T> {
+export class StaticSourceNode<T> implements StaticNode<T> {
 
   constructor(private readonly initializer: StaticSourceProvider<T>) {
   }

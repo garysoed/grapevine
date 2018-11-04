@@ -2,13 +2,13 @@ import { ImmutableList } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { combineLatest, Observable, of as observableOf } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
-import { InstanceSubject } from './instance-subject';
+import { InstanceNode } from './instance-node';
 
 interface AnySubject {
   getObs(context?: BaseDisposable): any;
 }
 
-export class InstanceStreamSubject<T> implements InstanceSubject<T> {
+export class InstanceStreamNode<T> implements InstanceNode<T> {
   private readonly observables_: WeakMap<BaseDisposable, Observable<T>> = new WeakMap();
 
   constructor(
