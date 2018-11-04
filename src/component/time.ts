@@ -1,5 +1,6 @@
 /**
  * Represents a time in Grapevine.
+ * @deprecated Remove all usages.
  */
 export class Time {
   constructor(private readonly timestamp_: number) { }

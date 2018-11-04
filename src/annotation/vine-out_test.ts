@@ -1,4 +1,4 @@
-import { match, retryUntil, should } from 'gs-testing/export/main';
+import { assert, should } from 'gs-testing/export/main';
 import { createSpy } from 'gs-testing/export/spy';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
@@ -9,7 +9,7 @@ import { getOrRegisterApp } from '../main/vine';
 const {builder, vineIn, vineOut} = getOrRegisterApp('test');
 
 describe('annotation.vineOut', () => {
-  should(`set up the stream correctly`, async () => {
+  should(`set up the stream correctly`, () => {
     const mainId = instanceStreamId('main', StringType);
     const aId = instanceStreamId('a', NumberType);
     const bId = instanceStreamId('b', NumberType);
@@ -77,15 +77,15 @@ describe('annotation.vineOut', () => {
     vine.listen(mockGHandler, context, gId);
     vine.listen(mockJHandler, context, jId);
 
-    await retryUntil(() => mockMainHandler).to.equal(match.anySpyThat().haveBeenCalledWith('27'));
-    await retryUntil(() => mockCHandler).to.equal(match.anySpyThat().haveBeenCalledWith(9));
-    await retryUntil(() => mockGHandler).to.equal(match.anySpyThat().haveBeenCalledWith(13));
+    assert(mockMainHandler).to.haveBeenCalledWith('27');
+    assert(mockCHandler).to.haveBeenCalledWith(9);
+    assert(mockGHandler).to.haveBeenCalledWith(13);
 
     vine.setValue(dId, 5, context);
     vine.setValue(hId, 6, context);
 
-    await retryUntil(() => mockMainHandler).to.equal(match.anySpyThat().haveBeenCalledWith('63'));
-    await retryUntil(() => mockGHandler).to.equal(match.anySpyThat().haveBeenCalledWith(15));
-    await retryUntil(() => mockJHandler).to.equal(match.anySpyThat().haveBeenCalledWith(123));
+    assert(mockMainHandler).to.haveBeenCalledWith('63');
+    assert(mockGHandler).to.haveBeenCalledWith(15);
+    assert(mockJHandler).to.haveBeenCalledWith(123);
   });
 });

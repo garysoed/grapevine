@@ -1,9 +1,9 @@
-import { InstanceSourceProvider } from '../node/instance-source-provider';
+import { InstanceSourceProvider } from '../subject/instance-source-provider';
 import { RegistrationNode } from './registration-node';
 
 /**
  * Represents a registration for a SourceNode.
  */
 export interface InstanceSourceRegistrationNode<T> extends RegistrationNode<T> {
-  readonly initProvider: InstanceSourceProvider<T>;
+  initProvider: InstanceSourceProvider<T>;
 }

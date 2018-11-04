@@ -1,8 +1,7 @@
 import 'jasmine';
 
-import { assert, match, retryUntil, should } from 'gs-testing/export/main';
-import { MockTime } from 'gs-testing/export/mock';
-import { createSpy } from 'gs-testing/export/spy';
+import { assert, should } from 'gs-testing/export/main';
+import { createSpy, resetCalls } from 'gs-testing/export/spy';
 import { ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
@@ -12,22 +11,16 @@ import { SourceId } from '../component/source-id';
 import { staticSourceId } from '../component/static-source-id';
 import { staticStreamId } from '../component/static-stream-id';
 import { Time } from '../component/time';
-import { InstanceSourceNode } from '../node/instance-source-node';
-import { InstanceStreamNode } from '../node/instance-stream-node';
-import { SourceNode } from '../node/source-node';
-import { StaticSourceNode } from '../node/static-source-node';
-import { StaticStreamNode } from '../node/static-stream-node';
+import { InstanceSourceSubject } from '../subject/instance-source-subject';
+import { InstanceStreamSubject } from '../subject/instance-stream-subject';
+import { SourceSubject } from '../subject/source-subject';
+import { StaticSourceSubject } from '../subject/static-source-subject';
+import { StaticStreamSubject } from '../subject/static-stream-subject';
 import { VineImpl } from './vine-impl';
 
 describe('main.VineImpl', () => {
-  let mockTime: MockTime;
-
-  beforeEach(() => {
-    mockTime = new MockTime();
-  });
-
   describe('listen', () => {
-    should(`call the handler correctly for static source IDs`, async () => {
+    should(`call the handler correctly for static source IDs`, () => {
       const time = Time.new();
       const id1 = staticSourceId('id1', NumberType);
       const id2 = staticSourceId('id2', StringType);
@@ -36,45 +29,36 @@ describe('main.VineImpl', () => {
       const newValue1 = 2;
       const newValue2 = 'def';
       const newerValue = 4;
-      const sourceNode1 = new StaticSourceNode(id1, time, () => initValue1);
-      const sourceNode2 = new StaticSourceNode(id2, time, () => initValue2);
+      const sourceSubject1 = new StaticSourceSubject(() => initValue1);
+      const sourceSubject2 = new StaticSourceSubject(() => initValue2);
 
       const vine = new VineImpl(
           time,
-          ImmutableMap.of<SourceId<any>, SourceNode<any>>([[id1, sourceNode1], [id2, sourceNode2]]),
+          ImmutableMap.of<SourceId<any>, SourceSubject<any>>([
+            [id1, sourceSubject1],
+            [id2, sourceSubject2],
+          ]),
           ImmutableMap.of(),
-          mockTime.createWindow());
+          window);
 
       const mockHandler = createSpy('Handler');
       const unlistenFn = vine.listen(mockHandler, id1, id2);
 
-      mockTime.at(1, () => vine.setValue(id1, newValue1));
-      mockTime.at(3, () => vine.setValue(id2, newValue2));
-      mockTime.at(5, () => {
-        unlistenFn();
-        vine.setValue(id1, newerValue);
-      });
+      assert(mockHandler).to.haveBeenCalledWith(initValue1, initValue2);
 
-      mockTime.at(
-          0,
-          async () => retryUntil(() => mockHandler)
-              .to.equal(match.anySpyThat().haveBeenCalledWith(initValue1, initValue2)));
-      mockTime.at(
-          2,
-          async () => retryUntil(() => mockHandler)
-              .to.equal(match.anySpyThat().haveBeenCalledWith(newValue1, initValue2)));
-      mockTime.at(
-          4,
-          async () => retryUntil(() => mockHandler)
-              .to.equal(match.anySpyThat().haveBeenCalledWith(newValue1, newValue2)));
-      mockTime.at(
-          6,
-          async () => retryUntil(() => mockHandler)
-              .toNot.equal(match.anySpyThat().haveBeenCalledWith(newerValue)));
-      await mockTime.run();
+      vine.setValue(id1, newValue1);
+      assert(mockHandler).to.haveBeenCalledWith(newValue1, initValue2);
+
+      vine.setValue(id2, newValue2);
+      assert(mockHandler).to.haveBeenCalledWith(newValue1, newValue2);
+
+      unlistenFn();
+      resetCalls(mockHandler);
+      vine.setValue(id1, newerValue);
+      assert(mockHandler).toNot.haveBeenCalled();
     });
 
-    should(`call the handler correctly for instance source IDs`, async () => {
+    should(`call the handler correctly for instance source IDs`, () => {
       const time = Time.new();
       const id1 = instanceSourceId('id1', NumberType);
       const id2 = staticSourceId('id2', StringType);
@@ -83,128 +67,97 @@ describe('main.VineImpl', () => {
       const newValue1 = 2;
       const newValue2 = 'def';
       const newerValue = 4;
-      const sourceNode1 = new InstanceSourceNode(id1, time, () => initValue1);
-      const sourceNode2 = new StaticSourceNode(id2, time, () => initValue2);
+      const sourceSubject1 = new InstanceSourceSubject(() => initValue1);
+      const sourceSubject2 = new StaticSourceSubject(() => initValue2);
       const context = new BaseDisposable();
 
       const vine = new VineImpl(
           time,
-          ImmutableMap.of<SourceId<any>, SourceNode<any>>([[id1, sourceNode1], [id2, sourceNode2]]),
+          ImmutableMap.of<SourceId<any>, SourceSubject<any>>([
+            [id1, sourceSubject1],
+            [id2, sourceSubject2],
+          ]),
           ImmutableMap.of(),
-          mockTime.createWindow());
+          window);
 
       const mockHandler = createSpy('Handler');
       const unlistenFn = vine.listen(mockHandler, context, id1, id2);
 
-      mockTime.at(1, () => vine.setValue(id1, newValue1, context));
-      mockTime.at(3, () => vine.setValue(id2, newValue2));
-      mockTime.at(5, () => {
-        unlistenFn();
-        vine.setValue(id1, newerValue, context);
-      });
+      assert(mockHandler).to.haveBeenCalledWith(initValue1, initValue2);
 
-    mockTime.at(
-        0,
-        async () => retryUntil(() => mockHandler)
-            .to.equal(match.anySpyThat().haveBeenCalledWith(initValue1, initValue2)));
-    mockTime.at(
-        2,
-        async () => retryUntil(() => mockHandler)
-            .to.equal(match.anySpyThat().haveBeenCalledWith(newValue1, initValue2)));
-    mockTime.at(
-        4,
-        async () => retryUntil(() => mockHandler)
-            .to.equal(match.anySpyThat().haveBeenCalledWith(newValue1, newValue2)));
-    mockTime.at(
-        6,
-        async () => retryUntil(() => mockHandler)
-            .toNot.equal(match.anySpyThat().haveBeenCalledWith(newerValue)));
-      await mockTime.run();
+      vine.setValue(id1, newValue1, context);
+      assert(mockHandler).to.haveBeenCalledWith(newValue1, initValue2);
+
+      vine.setValue(id2, newValue2);
+      assert(mockHandler).to.haveBeenCalledWith(newValue1, newValue2);
+
+      unlistenFn();
+      resetCalls(mockHandler);
+      vine.setValue(id1, newerValue, context);
+      assert(mockHandler).toNot.haveBeenCalled();
     });
 
-    should(`call the handler correctly for static stream IDs`, async () => {
+    should(`call the handler correctly for static stream IDs`, () => {
       const time = Time.new();
       const sourceId = staticSourceId('sourceId', NumberType);
-      const sourceNode = new StaticSourceNode(sourceId, time, () => 1);
+      const sourceSubject = new StaticSourceSubject(() => 1);
 
       const id = staticStreamId('streamId', NumberType);
-      const streamNode = new StaticStreamNode(
-          id,
-          time,
+      const streamSubject = new StaticStreamSubject(
+          ImmutableList.of([sourceSubject]),
           v => v * v,
-          ImmutableList.of([sourceNode]));
+      );
 
       const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
           time,
-          ImmutableMap.of([[sourceId, sourceNode]]),
-          ImmutableMap.of([[id, streamNode]]),
-          mockTime.createWindow());
+          ImmutableMap.of([[sourceId, sourceSubject]]),
+          ImmutableMap.of([[id, streamSubject]]),
+          window);
 
       const unlistenFn = vine.listen(mockHandler, id);
-      mockTime.at(1, () => vine.setValue(sourceId, 2));
-      mockTime.at(3, () => {
-        unlistenFn();
-        vine.setValue(sourceId, 4);
-      });
+      assert(mockHandler).to.haveBeenCalledWith(1);
 
-      mockTime.at(
-          0,
-          async () => retryUntil(() => mockHandler)
-              .to.equal(match.anySpyThat().haveBeenCalledWith(1)));
-      mockTime.at(
-          2,
-          async () => retryUntil(() => mockHandler)
-              .to.equal(match.anySpyThat().haveBeenCalledWith(4)));
-      mockTime.at(
-          4,
-          async () => retryUntil(() => mockHandler)
-              .toNot.equal(match.anySpyThat().haveBeenCalledWith(16)));
-      await mockTime.run();
+      vine.setValue(sourceId, 2);
+      assert(mockHandler).to.haveBeenCalledWith(4);
+
+      unlistenFn();
+      resetCalls(mockHandler);
+      vine.setValue(sourceId, 4);
+      assert(mockHandler).toNot.haveBeenCalled();
     });
 
-    should(`call the handler correctly for instance stream IDs`, async () => {
+    should(`call the handler correctly for instance stream IDs`, () => {
       const time = Time.new();
       const sourceId = instanceSourceId('sourceId', NumberType);
-      const sourceNode = new InstanceSourceNode(sourceId, time, () => 1);
+      const sourceSubject = new InstanceSourceSubject(() => 1);
 
       const id = instanceStreamId('streamId', NumberType);
-      const streamNode = new InstanceStreamNode(
-          id,
-          time,
+      const streamSubject = new InstanceStreamSubject(
+          ImmutableList.of([sourceSubject]),
           v => v * v,
-          ImmutableList.of([sourceNode]));
+          );
       const context = new BaseDisposable();
 
       const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
           time,
-          ImmutableMap.of([[sourceId, sourceNode]]),
-          ImmutableMap.of([[id, streamNode]]),
-          mockTime.createWindow());
+          ImmutableMap.of([[sourceId, sourceSubject]]),
+          ImmutableMap.of([[id, streamSubject]]),
+          window);
 
       const unlistenFn = vine.listen(mockHandler, context, id);
-      mockTime.at(1, () => vine.setValue(sourceId, 2, context));
-      mockTime.at(3, () => {
-        unlistenFn();
-        vine.setValue(sourceId, 4, context);
-      });
+      assert(mockHandler).to.haveBeenCalledWith(1);
 
-      mockTime.at(
-          0,
-          async () => retryUntil(() => mockHandler)
-              .to.equal(match.anySpyThat().haveBeenCalledWith(1)));
-      mockTime.at(
-          2,
-          async () => retryUntil(() => mockHandler)
-              .to.equal(match.anySpyThat().haveBeenCalledWith(4)));
-      mockTime.at(
-          4,
-          async () => retryUntil(() => mockHandler)
-              .toNot.equal(match.anySpyThat().haveBeenCalledWith(16)));
-      await mockTime.run();
+      vine.setValue(sourceId, 2, context);
+      assert(mockHandler).to.haveBeenCalledWith(4);
+
+      unlistenFn();
+      resetCalls(mockHandler);
+      vine.setValue(sourceId, 4, context);
+      assert(mockHandler).toNot.haveBeenCalled();
     });
 
     should(`throw error if the node cannot be found`, () => {
@@ -213,7 +166,7 @@ describe('main.VineImpl', () => {
           Time.new(),
           ImmutableMap.of(),
           ImmutableMap.of(),
-          mockTime.createWindow());
+          window);
 
       assert(() => {
         vine.listen(() => undefined, nodeId);
@@ -222,104 +175,84 @@ describe('main.VineImpl', () => {
   });
 
   describe('setValue', () => {
-    should(`set the value correctly for static source nodes`, async () => {
+    should(`set the value correctly for static source nodes`, () => {
       const time = Time.new();
       const id = staticSourceId('id', NumberType);
       const value = 2;
-      const sourceNode = new StaticSourceNode(id, time, () => 1);
+      const sourceSubject = new StaticSourceSubject(() => 1);
 
       const vine = new VineImpl(
           time,
-          ImmutableMap.of([[id, sourceNode]]),
+          ImmutableMap.of([[id, sourceSubject]]),
           ImmutableMap.of(),
-          mockTime.createWindow());
+          window);
 
       const mockHandler = createSpy('Handler');
       vine.listen(mockHandler, id);
 
-      mockTime.at(1, () => vine.setValue(id, value));
-
-      mockTime.at(
-          2,
-          async () => retryUntil(() => mockHandler)
-              .to.equal(match.anySpyThat().haveBeenCalledWith(value)));
-      await mockTime.run();
+      vine.setValue(id, value);
+      assert(mockHandler).to.haveBeenCalledWith(value);
     });
 
-    should(`not set the value for static source nodes if they are the same`, async () => {
+    should(`not set the value for static source nodes if they are the same`, () => {
       const time = Time.new();
       const id = staticSourceId('id', NumberType);
       const value = 2;
-      const sourceNode = new StaticSourceNode(id, time, () => 1);
+      const sourceSubject = new StaticSourceSubject(() => 1);
       const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
           time,
-          ImmutableMap.of([[id, sourceNode]]),
+          ImmutableMap.of([[id, sourceSubject]]),
           ImmutableMap.of(),
-          mockTime.createWindow());
+          window);
 
-      mockTime.at(1, () => vine.setValue(id, value));
-      mockTime.at(2, () => {
-        vine.listen(mockHandler, id);
-        vine.setValue(id, value);
-      });
-
-      mockTime.at(3, () => {
-        assert(mockHandler).toNot.haveBeenCalled();
-      });
-      await mockTime.run();
+      vine.setValue(id, value);
+      vine.listen(mockHandler, id);
+      resetCalls(mockHandler);
+      vine.setValue(id, value);
+      assert(mockHandler).toNot.haveBeenCalled();
     });
 
-    should(`set the value correctly for instance source nodes`, async () => {
+    should(`set the value correctly for instance source nodes`, () => {
       const time = Time.new();
       const id = instanceSourceId('id', NumberType);
       const value = 2;
-      const sourceNode = new InstanceSourceNode(id, time, () => 1);
+      const sourceSubject = new InstanceSourceSubject(() => 1);
       const context = new BaseDisposable();
 
       const vine = new VineImpl(
           time,
-          ImmutableMap.of([[id, sourceNode]]),
+          ImmutableMap.of([[id, sourceSubject]]),
           ImmutableMap.of(),
-          mockTime.createWindow());
+          window);
 
       const mockHandler = createSpy('Handler');
       vine.listen(mockHandler, context, id);
 
-      mockTime.at(1, () => vine.setValue(id, value, context));
-
-      mockTime.at(
-          2,
-          async () => retryUntil(() => mockHandler)
-              .to.equal(match.anySpyThat().haveBeenCalledWith(value)));
-      await mockTime.run();
+      vine.setValue(id, value, context);
+      assert(mockHandler).to.haveBeenCalledWith(value);
     });
 
-    should(`not set the value for instance source nodes if they are the same`, async () => {
+    should(`not set the value for instance source nodes if they are the same`, () => {
       const time = Time.new();
       const id = instanceSourceId('id', NumberType);
       const value = 2;
-      const sourceNode = new InstanceSourceNode(id, time, () => 1);
+      const sourceSubject = new InstanceSourceSubject(() => 1);
       const context = new BaseDisposable();
       const mockHandler = createSpy('Handler');
 
       const vine = new VineImpl(
           time,
-          ImmutableMap.of([[id, sourceNode]]),
+          ImmutableMap.of([[id, sourceSubject]]),
           ImmutableMap.of(),
-          mockTime.createWindow());
+          window);
 
-      mockTime.at(1, () => vine.setValue(id, value, context));
-      mockTime.at(2, () => {
-        vine.listen(mockHandler, context, id);
-        vine.setValue(id, value, context);
-      });
-
-      mockTime.at(3, () => {
-        assert(mockHandler).toNot.haveBeenCalled();
-      });
-      await mockTime.run();
+      vine.setValue(id, value, context);
+      vine.listen(mockHandler, context, id);
+      resetCalls(mockHandler);
+      vine.setValue(id, value, context);
+      assert(mockHandler).toNot.haveBeenCalled();
     });
 
     should(`throw error if the node cannot be found`, () => {
@@ -328,7 +261,7 @@ describe('main.VineImpl', () => {
           Time.new(),
           ImmutableMap.of(),
           ImmutableMap.of(),
-          mockTime.createWindow());
+          window);
 
       assert(() => {
         vine.setValue(nodeId, 12);

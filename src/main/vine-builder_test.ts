@@ -5,12 +5,14 @@ import { MockTime } from 'gs-testing/export/mock';
 import { createSpy } from 'gs-testing/export/spy';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
+import { BehaviorSubject } from 'rxjs';
 import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
 import { staticSourceId } from '../component/static-source-id';
 import { staticStreamId } from '../component/static-stream-id';
 import { VineBuilder } from './vine-builder';
 import { $vine } from './vine-id';
+import { VineImpl } from './vine-impl';
 
 describe('main.VineBuilder', () => {
   let mockTime: MockTime;
@@ -96,31 +98,21 @@ describe('main.VineBuilder', () => {
       builder.source(hId, 4);
       const vine = builder.run();
 
-      // Set events.
-      mockTime.at(0, () => {
-        vine.listen(mockMainHandler, context, mainId);
-        vine.listen(mockCHandler, context, cId);
-        vine.listen(mockGHandler, context, gId);
-      });
-      mockTime.at(2, () => {
-        vine.setValue(dId, 5);
-        vine.setValue(hId, 6, context);
-      });
+      vine.listen(mockMainHandler, context, mainId);
+      vine.listen(mockCHandler, context, cId);
+      vine.listen(mockGHandler, context, gId);
 
-      // Set expectations.
-      mockTime.at(1, async () => {
-        assert(await vine.getLatest($vine)).to.equal(vine);
-        await retryUntil(() => mockMainHandler)
-            .to.equal(match.anySpyThat().haveBeenCalledWith('27'));
-        await retryUntil(() => mockCHandler).to.equal(match.anySpyThat().haveBeenCalledWith(9));
-        await retryUntil(() => mockGHandler).to.equal(match.anySpyThat().haveBeenCalledWith(13));
-      });
-      mockTime.at(3, async () => {
-        await retryUntil(() => mockMainHandler)
-            .to.equal(match.anySpyThat().haveBeenCalledWith('63'));
-        await retryUntil(() => mockGHandler).to.equal(match.anySpyThat().haveBeenCalledWith(15));
-      });
-      await mockTime.run();
+      const vineSubject = new BehaviorSubject<VineImpl|null>(null);
+      vine.getObservable($vine).subscribe(vineSubject);
+      assert(vineSubject.getValue()).to.equal(vine);
+      assert(mockMainHandler).to.haveBeenCalledWith('27');
+      assert(mockCHandler).to.haveBeenCalledWith(9);
+      assert(mockGHandler).to.haveBeenCalledWith(13);
+
+      vine.setValue(dId, 5);
+      vine.setValue(hId, 6, context);
+      assert(mockMainHandler).to.haveBeenCalledWith('63');
+      assert(mockGHandler).to.haveBeenCalledWith(15);
     });
 
     should(`throw error if the stream is already registered`, () => {

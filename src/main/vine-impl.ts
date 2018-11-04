@@ -1,5 +1,6 @@
-import { ImmutableMap, ImmutableSet } from 'gs-tools/export/collect';
+import { ImmutableMap } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
+import { combineLatest, Observable } from 'rxjs';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';
 import { NodeId } from '../component/node-id';
@@ -9,16 +10,16 @@ import { StaticStreamId } from '../component/static-stream-id';
 import { StreamId } from '../component/stream-id';
 import { Time } from '../component/time';
 import { GLOBAL_CONTEXT } from '../node/global-context';
-import { InstanceNode } from '../node/instance-node';
-import { InstanceSourceNode } from '../node/instance-source-node';
-import { InstanceStreamNode } from '../node/instance-stream-node';
-import { SourceNode } from '../node/source-node';
-import { StaticNode } from '../node/static-node';
-import { StaticStreamNode } from '../node/static-stream-node';
+import { InstanceSourceSubject } from '../subject/instance-source-subject';
+import { InstanceStreamSubject } from '../subject/instance-stream-subject';
+import { SourceSubject } from '../subject/source-subject';
+import { StaticSourceSubject } from '../subject/static-source-subject';
+import { StaticStreamSubject } from '../subject/static-stream-subject';
+import { StreamSubject } from '../subject/stream-subject';
 import { RequestQueue } from './request-queue';
 
-type AnyNode<T> = StaticNode<T>|InstanceNode<T>;
-type StreamNode<T> = InstanceStreamNode<T>|StaticStreamNode<T>;
+type AnySubject<T> = InstanceSourceSubject<T>|InstanceStreamSubject<T>|
+    StaticSourceSubject<T>|StaticStreamSubject<T>;
 
 /**
  * Runtime implementation of Grapevine.
@@ -28,32 +29,47 @@ export class VineImpl {
 
   constructor(
       time: Time,
-      private readonly sourceMap_: ImmutableMap<SourceId<any>, SourceNode<any>>,
-      private readonly streamMap_: ImmutableMap<StreamId<any>, StreamNode<any>>,
+      private readonly sourceMap_: ImmutableMap<SourceId<any>, SourceSubject<any>>,
+      private readonly streamMap_: ImmutableMap<StreamId<any>, StreamSubject<any>>,
       window: Window) {
     this.requestQueue_ = new RequestQueue(time, window);
   }
 
+  /**
+   * @deprecated Use get observable.
+   */
   async getLatest<T>(staticId: StaticSourceId<T>|StaticStreamId<T>): Promise<T>;
   async getLatest<T>(instanceId: InstanceSourceId<T>|InstanceStreamId<T>, context: BaseDisposable):
       Promise<T>;
   async getLatest<T>(nodeId: NodeId<T>, context: BaseDisposable = GLOBAL_CONTEXT): Promise<T> {
-    const node = this.getNode_(nodeId);
-    if (!node) {
+    const subject = this.getSubject_(nodeId);
+    if (!subject) {
       throw new Error(`Node for ${nodeId} cannot be found`);
     }
 
-    const time = this.requestQueue_.getTime();
-    if (node instanceof InstanceNode) {
-      return node.getValue(context, time);
-    } else {
-      return node.getValue(time);
-    }
+    return getObs(subject, context).toPromise();
   }
 
-  private getNode_(nodeId: NodeId<VineImpl>): AnyNode<VineImpl>;
-  private getNode_<T>(nodeId: NodeId<T>): AnyNode<T>|null;
-  private getNode_(nodeId: NodeId<any>): AnyNode<any>|null {
+  getObservable<T>(staticId: StaticSourceId<T>|StaticStreamId<T>): Observable<T>;
+  getObservable<T>(
+      instanceId: InstanceSourceId<T>|InstanceStreamId<T>,
+      context: BaseDisposable,
+  ): Observable<T>;
+  getObservable<T>(
+      nodeId: NodeId<T>,
+      context: BaseDisposable = GLOBAL_CONTEXT,
+  ): Observable<T> {
+    const subject = this.getSubject_(nodeId);
+    if (!subject) {
+      throw new Error(`Node for ${nodeId} cannot be found`);
+    }
+
+    return getObs(subject, context);
+  }
+
+  private getSubject_(nodeId: NodeId<VineImpl>): AnySubject<VineImpl>;
+  private getSubject_<T>(nodeId: NodeId<T>): AnySubject<T>|null;
+  private getSubject_(nodeId: NodeId<any>): AnySubject<any>|null {
     if (nodeId instanceof StaticSourceId || nodeId instanceof InstanceSourceId) {
       return this.sourceMap_.get(nodeId) || null;
     }
@@ -91,82 +107,44 @@ export class VineImpl {
     const context = contextOrId instanceof BaseDisposable ? contextOrId : GLOBAL_CONTEXT;
     const nodeIds = contextOrId instanceof NodeId ? [contextOrId, ...rawNodeIds] : rawNodeIds;
 
-    // Collect the nodes and source nodes.
-    const sourceNodes = new Set<SourceNode<any>>();
-    const nodes = new Map<NodeId<any>, AnyNode<any>>();
-    for (const nodeId of nodeIds) {
-      const node = this.getNode_(nodeId);
-      if (!node) {
-        throw new Error(`Node for ${nodeId} cannot be found`);
+    const obsList = [];
+    for (const id of nodeIds) {
+      const subject = this.getSubject_(id);
+      if (!subject) {
+        throw new Error(`Node for ${id} cannot be found`);
       }
 
-      for (const sourceNode of node.getSources()) {
-        sourceNodes.add(sourceNode);
-      }
-      nodes.set(nodeId, node);
+      obsList.push((getObs(subject, context)));
     }
-
-    // Create the wrapped handler.
-    const wrappedHandler = async () => {
-      const time = this.requestQueue_.getTime();
-      const valuePromises = [];
-      for (const nodeId of nodeIds) {
-        // tslint:disable-next-line:no-non-null-assertion
-        const node = nodes.get(nodeId)!;
-
-        if (node instanceof InstanceNode) {
-          valuePromises.push(node.getValue(context, time));
-        } else {
-          valuePromises.push(node.getValue(time));
-        }
-      }
-
-      const values = await Promise.all(valuePromises);
-      handler(...values);
-    };
-
-    const unlistenFns = ImmutableSet
-        .of(sourceNodes)
-        .mapItem(source => {
-          if (source instanceof InstanceSourceNode) {
-            return source.listen(wrappedHandler, context);
-          } else {
-            return source.listen(wrappedHandler);
-          }
-        });
-
-    // tslint:disable-next-line:no-floating-promises
-    wrappedHandler();
+    const subscription = combineLatest(obsList)
+        .subscribe(args => handler.call(context, ...args));
 
     return () => {
-      for (const unlistenFn of unlistenFns) {
-        unlistenFn();
-      }
+      subscription.unsubscribe();
     };
   }
 
   setValue<T>(sourceId: StaticSourceId<T>, newValue: T): void;
   setValue<T>(sourceId: InstanceSourceId<T>, newValue: T, context: BaseDisposable): void;
   setValue<T>(sourceId: SourceId<T>, newValue: T, context: BaseDisposable = GLOBAL_CONTEXT): void {
-    const sourceNode = this.sourceMap_.get(sourceId);
-    if (!sourceNode) {
+    const sourceSubject = this.sourceMap_.get(sourceId);
+    if (!sourceSubject) {
       throw new Error(`Source node for ${sourceId} cannot be found`);
     }
 
-    if (sourceNode instanceof InstanceSourceNode) {
-      this.requestQueue_.queue(sourceNode, context, async time => {
-        const latestValue = await sourceNode.getValue(context, time);
-        if (latestValue !== newValue) {
-          sourceNode.setValue(newValue, context, time);
-        }
-      });
+    if (sourceSubject instanceof InstanceSourceSubject) {
+      sourceSubject.next(context, newValue);
     } else {
-      this.requestQueue_.queue(sourceNode, context, async time => {
-        const latestValue = await sourceNode.getValue(time);
-        if (latestValue !== newValue) {
-          sourceNode.setValue(newValue, time);
-        }
-      });
+      sourceSubject.next(newValue);
     }
+  }
+}
+
+function getObs<T>(subject: AnySubject<T>, context: BaseDisposable): Observable<T> {
+  if (subject instanceof InstanceSourceSubject ||
+      subject instanceof InstanceStreamSubject) {
+    return subject.getObs(context);
+  } else  {
+    return subject.getObs();
   }
 }
