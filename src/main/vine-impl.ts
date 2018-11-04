@@ -11,13 +11,13 @@ import { StreamId } from '../component/stream-id';
 import { GLOBAL_CONTEXT } from '../node/global-context';
 import { InstanceSourceNode } from '../node/instance-source-node';
 import { InstanceStreamNode } from '../node/instance-stream-node';
-import { SourceNode } from '../node/source-node';
 import { StaticSourceNode } from '../node/static-source-node';
 import { StaticStreamNode } from '../node/static-stream-node';
-import { StreamNode } from '../node/stream-node';
 
-type AnySubject<T> = InstanceSourceNode<T>|InstanceStreamNode<T>|
-    StaticSourceNode<T>|StaticStreamNode<T>;
+type AnyNode<T> = InstanceSourceNode<T>|InstanceStreamNode<T>|
+    StaticSourceNode<T>| StaticStreamNode<T>;
+type SourceNode<T> = StaticSourceNode<T>|InstanceSourceNode<T>;
+type StreamNode<T> = StaticStreamNode<T>|InstanceStreamNode<T>;
 
 /**
  * Runtime implementation of Grapevine.
@@ -60,9 +60,9 @@ export class VineImpl {
     return getObs(subject, context);
   }
 
-  private getSubject_(nodeId: NodeId<VineImpl>): AnySubject<VineImpl>;
-  private getSubject_<T>(nodeId: NodeId<T>): AnySubject<T>|null;
-  private getSubject_(nodeId: NodeId<any>): AnySubject<any>|null {
+  private getSubject_(nodeId: NodeId<VineImpl>): AnyNode<VineImpl>;
+  private getSubject_<T>(nodeId: NodeId<T>): AnyNode<T>|null;
+  private getSubject_(nodeId: NodeId<any>): AnyNode<any>|null {
     if (nodeId instanceof StaticSourceId || nodeId instanceof InstanceSourceId) {
       return this.sourceMap_.get(nodeId) || null;
     }
@@ -133,7 +133,7 @@ export class VineImpl {
   }
 }
 
-function getObs<T>(subject: AnySubject<T>, context: BaseDisposable): Observable<T> {
+function getObs<T>(subject: AnyNode<T>, context: BaseDisposable): Observable<T> {
   if (subject instanceof InstanceSourceNode ||
       subject instanceof InstanceStreamNode) {
     return subject.getObs(context);

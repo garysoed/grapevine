@@ -12,10 +12,11 @@ import { staticSourceId } from '../component/static-source-id';
 import { staticStreamId } from '../component/static-stream-id';
 import { InstanceSourceNode } from '../node/instance-source-node';
 import { InstanceStreamNode } from '../node/instance-stream-node';
-import { SourceNode } from '../node/source-node';
 import { StaticSourceNode } from '../node/static-source-node';
 import { StaticStreamNode } from '../node/static-stream-node';
 import { VineImpl } from './vine-impl';
+
+type SourceNode<T> = StaticSourceNode<T>|InstanceSourceNode<T>;
 
 describe('main.VineImpl', () => {
   describe('listen', () => {
@@ -31,7 +32,7 @@ describe('main.VineImpl', () => {
       const sourceSubject2 = new StaticSourceNode(() => initValue2);
 
       const vine = new VineImpl(
-          ImmutableMap.of<SourceId<any>, SourceNode<any>>([
+          ImmutableMap.of<SourceId<any>, StaticSourceNode<any>>([
             [id1, sourceSubject1],
             [id2, sourceSubject2],
           ]),

@@ -6,8 +6,7 @@ import { StaticSourceProvider } from './static-source-provider';
 
 export class StaticSourceNode<T> implements StaticNode<T> {
 
-  constructor(private readonly initializer: StaticSourceProvider<T>) {
-  }
+  constructor(private readonly initializer: StaticSourceProvider<T>) { }
 
   getObs(): Observable<T> {
     return this.getOrCreateObs().pipe(

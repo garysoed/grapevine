@@ -13,18 +13,18 @@ import { StreamId } from '../component/stream-id';
 import { InstanceSourceNode } from '../node/instance-source-node';
 import { InstanceSourceProvider } from '../node/instance-source-provider';
 import { InstanceStreamNode } from '../node/instance-stream-node';
-import { SourceNode } from '../node/source-node';
 import { StaticNode } from '../node/static-node';
 import { StaticSourceNode } from '../node/static-source-node';
 import { StaticSourceProvider } from '../node/static-source-provider';
 import { StaticStreamNode } from '../node/static-stream-node';
-import { StreamNode } from '../node/stream-node';
 import { InstanceSourceRegistrationNode } from '../registration/instance-source-registration-node';
 import { StaticSourceRegistrationNode } from '../registration/static-source-registration-node';
 import { StreamRegistrationNode } from '../registration/stream-registration-node';
 import { $vine } from './vine-id';
 import { VineImpl } from './vine-impl';
 
+type SourceNode<T> = StaticSourceNode<T>|InstanceSourceNode<T>;
+type StreamNode<T> = StaticStreamNode<T>|InstanceStreamNode<T>;
 type SourceRegistrationNode<T> = StaticSourceRegistrationNode<T>|InstanceSourceRegistrationNode<T>;
 type OnRunFn = (vine: VineImpl) => unknown;
 
