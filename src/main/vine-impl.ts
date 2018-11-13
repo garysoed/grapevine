@@ -1,6 +1,6 @@
 import { ImmutableMap } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
-import { combineLatest, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';
 import { NodeId } from '../component/node-id';
@@ -26,21 +26,6 @@ export class VineImpl {
   constructor(
       private readonly sourceMap_: ImmutableMap<SourceId<any>, SourceNode<any>>,
       private readonly streamMap_: ImmutableMap<StreamId<any>, StreamNode<any>>) {
-  }
-
-  /**
-   * @deprecated Use get observable.
-   */
-  async getLatest<T>(staticId: StaticSourceId<T>|StaticStreamId<T>): Promise<T>;
-  async getLatest<T>(instanceId: InstanceSourceId<T>|InstanceStreamId<T>, context: BaseDisposable):
-      Promise<T>;
-  async getLatest<T>(nodeId: NodeId<T>, context: BaseDisposable = GLOBAL_CONTEXT): Promise<T> {
-    const subject = this.getSubject_(nodeId);
-    if (!subject) {
-      throw new Error(`Node for ${nodeId} cannot be found`);
-    }
-
-    return getObs(subject, context).toPromise();
   }
 
   getObservable<T>(staticId: StaticSourceId<T>|StaticStreamId<T>): Observable<T>;
@@ -72,49 +57,6 @@ export class VineImpl {
     }
 
     return null;
-  }
-
-  listen<T>(
-      handler: (value: T) => void,
-      context: BaseDisposable,
-      nodeId: NodeId<T>): () => void;
-  listen<T1, T2>(
-      handler: (value1: T1, value2: T2) => void,
-      context: BaseDisposable,
-      nodeId1: NodeId<T1>,
-      nodeId2: NodeId<T2>): () => void;
-
-  listen<T>(
-      handler: (value: T) => void,
-      nodeId: StaticSourceId<T>|StaticStreamId<T>): () => void;
-  listen<T1, T2>(
-      handler: (value1: T1, value2: T2) => void,
-      nodeId1: StaticSourceId<T1>|StaticStreamId<T1>,
-      nodeId2: StaticSourceId<T2>|StaticStreamId<T2>): () => void;
-
-  listen(
-      handler: (...args: any[]) => void,
-      contextOrId: BaseDisposable|NodeId<any>,
-      ...rawNodeIds: NodeId<any>[]): () => void {
-    // Normalize the context and node
-    const context = contextOrId instanceof BaseDisposable ? contextOrId : GLOBAL_CONTEXT;
-    const nodeIds = contextOrId instanceof NodeId ? [contextOrId, ...rawNodeIds] : rawNodeIds;
-
-    const obsList = [];
-    for (const id of nodeIds) {
-      const subject = this.getSubject_(id);
-      if (!subject) {
-        throw new Error(`Node for ${id} cannot be found`);
-      }
-
-      obsList.push((getObs(subject, context)));
-    }
-    const subscription = combineLatest(obsList)
-        .subscribe(args => handler.call(context, ...args));
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }
 
   setValue<T>(sourceId: StaticSourceId<T>, newValue: T): void;

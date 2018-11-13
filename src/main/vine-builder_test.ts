@@ -1,8 +1,7 @@
 import 'jasmine';
 
-import { assert, match, retryUntil, should } from 'gs-testing/export/main';
+import { assert, should } from 'gs-testing/export/main';
 import { MockTime } from 'gs-testing/export/mock';
-import { createSpy } from 'gs-testing/export/spy';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
 import { BehaviorSubject } from 'rxjs';
@@ -27,7 +26,6 @@ describe('main.VineBuilder', () => {
     should(`register the source correctly`, async () => {
       const sourceId = instanceSourceId('sourceId', NumberType);
       const context = new BaseDisposable();
-      const mockHandler = createSpy('Handler');
       const initValue = 123;
       const value = 456;
 
@@ -35,18 +33,13 @@ describe('main.VineBuilder', () => {
 
       const vine = builder.run();
 
-      mockTime.at(0, () => {
-        vine.listen(mockHandler, context, sourceId);
-        vine.setValue(sourceId, value, context);
-      });
+      const subject = new BehaviorSubject<number|null>(null);
+      vine.getObservable(sourceId, context).subscribe(subject);
 
-      mockTime.at(1, async () => {
-        await retryUntil(() => mockHandler)
-            .to.equal(match.anySpyThat().haveBeenCalledWith(initValue));
-        await retryUntil(() => mockHandler).to.equal(match.anySpyThat().haveBeenCalledWith(value));
-      });
+      assert(subject.getValue()).to.equal(initValue);
 
-      await mockTime.run();
+      vine.setValue(sourceId, value, context);
+      assert(subject.getValue()).to.equal(value);
     });
 
     should(`throw error if the source is already registered`, () => {
@@ -82,9 +75,6 @@ describe('main.VineBuilder', () => {
       const gId = instanceStreamId('g', NumberType);
       const hId = instanceSourceId('h', NumberType);
 
-      const mockMainHandler = createSpy('MainHandler');
-      const mockCHandler = createSpy('CHandler');
-      const mockGHandler = createSpy('GHandler');
       const context = new BaseDisposable();
 
       builder.stream(mainId, (value: number) => `${value}`, aId);
@@ -98,21 +88,24 @@ describe('main.VineBuilder', () => {
       builder.source(hId, 4);
       const vine = builder.run();
 
-      vine.listen(mockMainHandler, context, mainId);
-      vine.listen(mockCHandler, context, cId);
-      vine.listen(mockGHandler, context, gId);
+      const mainHandler = new BehaviorSubject<string|null>(null);
+      const cHandler = new BehaviorSubject<number|null>(null);
+      const gHandler = new BehaviorSubject<number|null>(null);
+      vine.getObservable(mainId, context).subscribe(mainHandler);
+      vine.getObservable(cId, context).subscribe(cHandler);
+      vine.getObservable(gId, context).subscribe(gHandler);
 
       const vineSubject = new BehaviorSubject<VineImpl|null>(null);
       vine.getObservable($vine).subscribe(vineSubject);
       assert(vineSubject.getValue()).to.equal(vine);
-      assert(mockMainHandler).to.haveBeenCalledWith('27');
-      assert(mockCHandler).to.haveBeenCalledWith(9);
-      assert(mockGHandler).to.haveBeenCalledWith(13);
+      assert(mainHandler.getValue()).to.equal('27');
+      assert(cHandler.getValue()).to.equal(9);
+      assert(gHandler.getValue()).to.equal(13);
 
       vine.setValue(dId, 5);
       vine.setValue(hId, 6, context);
-      assert(mockMainHandler).to.haveBeenCalledWith('63');
-      assert(mockGHandler).to.haveBeenCalledWith(15);
+      assert(mainHandler.getValue()).to.equal('63');
+      assert(gHandler.getValue()).to.equal(15);
     });
 
     should(`throw error if the stream is already registered`, () => {

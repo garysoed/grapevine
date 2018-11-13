@@ -1,7 +1,7 @@
 import { assert, should } from 'gs-testing/export/main';
-import { createSpy } from 'gs-testing/export/spy';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
+import { BehaviorSubject } from 'rxjs';
 import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
 import { getOrRegisterApp } from '../main/vine';
@@ -65,27 +65,27 @@ describe('annotation.vineOut', () => {
     builder.source(hId, 4);
 
     const vine = builder.run();
-    const mockMainHandler = createSpy('MainHandler');
-    const mockCHandler = createSpy('CHandler');
-    const mockGHandler = createSpy('GHandler');
-    const mockJHandler = createSpy('JHandler');
+    const mainSubject = new BehaviorSubject<string|null>(null);
+    const cSubject = new BehaviorSubject<number|null>(null);
+    const gSubject = new BehaviorSubject<number|null>(null);
+    const jSubject = new BehaviorSubject<number|null>(null);
 
     const context = new TestClass();
 
-    vine.listen(mockMainHandler, context, mainId);
-    vine.listen(mockCHandler, context, cId);
-    vine.listen(mockGHandler, context, gId);
-    vine.listen(mockJHandler, context, jId);
+    vine.getObservable(mainId, context).subscribe(mainSubject);
+    vine.getObservable(cId, context).subscribe(cSubject);
+    vine.getObservable(gId, context).subscribe(gSubject);
+    vine.getObservable(jId, context).subscribe(jSubject);
 
-    assert(mockMainHandler).to.haveBeenCalledWith('27');
-    assert(mockCHandler).to.haveBeenCalledWith(9);
-    assert(mockGHandler).to.haveBeenCalledWith(13);
+    assert(mainSubject.getValue()).to.equal('27');
+    assert(cSubject.getValue()).to.equal(9);
+    assert(gSubject.getValue()).to.equal(13);
 
     vine.setValue(dId, 5, context);
     vine.setValue(hId, 6, context);
 
-    assert(mockMainHandler).to.haveBeenCalledWith('63');
-    assert(mockGHandler).to.haveBeenCalledWith(15);
-    assert(mockJHandler).to.haveBeenCalledWith(123);
+    assert(mainSubject.getValue()).to.equal('63');
+    assert(gSubject.getValue()).to.equal(15);
+    assert(jSubject.getValue()).to.equal(123);
   });
 });
