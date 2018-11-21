@@ -14,7 +14,8 @@ export type VineOut = <T>(instanceId: InstanceStreamId<T>) => VineOutDecorator<T
 export function vineOutFactory(
     annotationsCache: Annotations<VineInData>,
     vineBuilder: VineBuilder,
-    vineIn: VineIn): VineOut {
+    vineIn: VineIn,
+): VineOut {
   return <T>(instanceId: InstanceStreamId<T>) => {
     const decorator = (target: Object, propertyKey: string | symbol) => {
       const paramsSet = annotationsCache
