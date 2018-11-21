@@ -1,10 +1,10 @@
-import { assert, should } from 'gs-testing/export/main';
+import { assert, should, test } from 'gs-testing/export/main';
 import { createSpy, fake, resetCalls, Spy } from 'gs-testing/export/spy';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { BehaviorSubject } from 'rxjs';
 import { InstanceSourceNode } from './instance-source-node';
 
-describe('node.InstanceSourceNode', () => {
+test('node.InstanceSourceNode', () => {
   let mockProvider: Spy<number, [BaseDisposable]>;
   let node: InstanceSourceNode<number>;
 
@@ -13,7 +13,7 @@ describe('node.InstanceSourceNode', () => {
     node = new InstanceSourceNode(mockProvider);
   });
 
-  describe('getObs', () => {
+  test('getObs', () => {
     should(`return the correct observable`, () => {
       const context = new BaseDisposable();
       const value = 123;
@@ -55,7 +55,7 @@ describe('node.InstanceSourceNode', () => {
     });
   });
 
-  describe('next', () => {
+  test('next', () => {
     should(`update the value for the correct context`, () => {
       const context1 = new BaseDisposable();
       const context2 = new BaseDisposable();

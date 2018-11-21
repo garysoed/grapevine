@@ -1,4 +1,4 @@
-import { assert, should } from 'gs-testing/export/main';
+import { assert, should, test } from 'gs-testing/export/main';
 import { ImmutableList } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { BehaviorSubject } from 'rxjs';
@@ -20,8 +20,8 @@ class TestClass extends BaseDisposable {
   }
 }
 
-describe('node.InstanceStreamNode', () => {
-  describe('getObs', () => {
+test('node.InstanceStreamNode', () => {
+  test('getObs', () => {
     should(`return the correct observable`, () => {
       const context = new TestClass();
       const sourceNode = new InstanceSourceNode(() => 3);

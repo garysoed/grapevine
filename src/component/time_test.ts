@@ -1,10 +1,10 @@
 import 'jasmine';
 
-import { assert, should } from 'gs-testing/export/main';
+import { assert, should, test } from 'gs-testing/export/main';
 import { Time } from './time';
 
-describe('component.Time', () => {
-  describe('beforeOrEqualTo', () => {
+test('component.Time', () => {
+  test('beforeOrEqualTo', () => {
     should(`return true if the first time is before the second one`, () => {
       const time1 = Time.new();
       const time2 = Time.new().increment();

@@ -1,11 +1,11 @@
-import { assert, should } from 'gs-testing/export/main';
+import { assert, should, test } from 'gs-testing/export/main';
 import { ImmutableList } from 'gs-tools/export/collect';
 import { BehaviorSubject } from 'rxjs';
 import { StaticSourceNode } from './static-source-node';
 import { StaticStreamNode } from './static-stream-node';
 
-describe('node.StaticStreamNode', () => {
-  describe('getObs', () => {
+test('node.StaticStreamNode', () => {
+  test('getObs', () => {
     should(`return the correct observable`, () => {
       const sourceNode = new StaticSourceNode(() => 3);
       const node = new StaticStreamNode(

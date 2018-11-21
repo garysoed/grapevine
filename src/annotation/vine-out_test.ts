@@ -1,4 +1,4 @@
-import { assert, should } from 'gs-testing/export/main';
+import { assert, should, test } from 'gs-testing/export/main';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
 import { BehaviorSubject } from 'rxjs';
@@ -6,9 +6,9 @@ import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
 import { getOrRegisterApp } from '../main/vine';
 
-const {builder, vineIn, vineOut} = getOrRegisterApp('test');
+const {builder, vineIn, vineOut} = getOrRegisterApp('test(');
 
-describe('annotation.vineOut', () => {
+test('annotation.vineOut', () => {
   should(`set up the stream correctly`, () => {
     const mainId = instanceStreamId('main', StringType);
     const aId = instanceStreamId('a', NumberType);

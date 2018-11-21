@@ -1,6 +1,6 @@
 import 'jasmine';
 
-import { assert, should } from 'gs-testing/export/main';
+import { assert, should, test } from 'gs-testing/export/main';
 import { ImmutableMap } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType } from 'gs-types/export';
@@ -11,8 +11,8 @@ import { InstanceSourceNode } from '../node/instance-source-node';
 import { StaticSourceNode } from '../node/static-source-node';
 import { VineImpl } from './vine-impl';
 
-describe('main.VineImpl', () => {
-  describe('setValue', () => {
+test('main.VineImpl', () => {
+  test('setValue', () => {
     should(`set the value correctly for static source nodes`, () => {
       const id = staticSourceId('id', NumberType);
       const value = 2;

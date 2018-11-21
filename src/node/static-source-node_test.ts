@@ -1,9 +1,9 @@
-import { assert, should } from 'gs-testing/export/main';
+import { assert, should, test } from 'gs-testing/export/main';
 import { createSpy, fake, resetCalls, Spy } from 'gs-testing/export/spy';
 import { BehaviorSubject } from 'rxjs';
 import { StaticSourceNode } from './static-source-node';
 
-describe('node.StaticSourceNode', () => {
+test('node.StaticSourceNode', () => {
   let mockProvider: Spy<number, []>;
   let node: StaticSourceNode<number>;
 
@@ -12,7 +12,7 @@ describe('node.StaticSourceNode', () => {
     node = new StaticSourceNode(mockProvider);
   });
 
-  describe('getObs', () => {
+  test('getObs', () => {
     should(`return the correct observable`, () => {
       const value = 123;
       fake(mockProvider).always().return(value);
@@ -51,7 +51,7 @@ describe('node.StaticSourceNode', () => {
     });
   });
 
-  describe('next', () => {
+  test('next', () => {
     should(`update the value`, () => {
       const value = 123;
       fake(mockProvider).always().return(value);

@@ -1,7 +1,6 @@
 import 'jasmine';
 
-import { assert, should } from 'gs-testing/export/main';
-import { MockTime } from 'gs-testing/export/mock';
+import { assert, should, test } from 'gs-testing/export/main';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
 import { BehaviorSubject } from 'rxjs';
@@ -13,16 +12,14 @@ import { VineBuilder } from './vine-builder';
 import { $vine } from './vine-id';
 import { VineImpl } from './vine-impl';
 
-describe('main.VineBuilder', () => {
-  let mockTime: MockTime;
+test('main.VineBuilder', () => {
   let builder: VineBuilder;
 
   beforeEach(() => {
-    mockTime = new MockTime();
-    builder = new VineBuilder(mockTime.createWindow());
+    builder = new VineBuilder(window);
   });
 
-  describe('source', () => {
+  test('source', () => {
     should(`register the source correctly`, async () => {
       const sourceId = instanceSourceId('sourceId', NumberType);
       const context = new BaseDisposable();
@@ -52,7 +49,7 @@ describe('main.VineBuilder', () => {
     });
   });
 
-  describe('stream', () => {
+  test('stream', () => {
     should(`set up the stream correctly`, async () => {
       // Tree:
       // main ('27')
