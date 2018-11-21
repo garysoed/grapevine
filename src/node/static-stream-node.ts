@@ -3,6 +3,9 @@ import { combineLatest, Observable, of as observableOf } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 import { StaticNode } from './static-node';
 
+/**
+ * Streaming node not associated with any instances.
+ */
 export class StaticStreamNode<T> implements StaticNode<T> {
   private readonly obs_: Observable<T>;
 

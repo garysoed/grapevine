@@ -60,9 +60,7 @@ export class VineBuilder {
   private readonly registeredSources_: Map<SourceId<any>, SourceRegistrationNode<any>> = new Map();
   private readonly registeredStreams_: Map<StreamId<any>, StreamRegistrationNode<any>> = new Map();
 
-  constructor(private readonly window_: Window = window) { }
-
-  genericStream<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: NodeId<any>[]): void {
+  genericStream<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: Array<NodeId<any>>): void {
     this.stream_(nodeId, provider, ...args);
   }
 
@@ -206,11 +204,11 @@ export class VineBuilder {
       arg1: NodeId<P1>,
       arg2: NodeId<P2>): void;
 
-  stream<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: NodeId<any>[]): void {
+  stream<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: Array<NodeId<any>>): void {
     this.stream_(nodeId, provider, ...args);
   }
 
-  stream_<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: NodeId<any>[]): void {
+  stream_<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: Array<NodeId<any>>): void {
     const streamRegistration = {
       dependencies: ImmutableList.of(args),
       id: nodeId,
@@ -225,7 +223,7 @@ export class VineBuilder {
 }
 
 function sortRegistrationMap(registrationMap: Map<StreamId<any>, StreamRegistrationNode<any>>):
-    [StreamId<any>, StreamRegistrationNode<any>][] {
+    Array<[StreamId<any>, StreamRegistrationNode<any>]> {
   // Create the graph.
   const potentialRoots = new Set(registrationMap.keys());
   const treeNodes = new Map<StreamId<any>, StreamTreeNode>();
@@ -250,7 +248,7 @@ function sortRegistrationMap(registrationMap: Map<StreamId<any>, StreamRegistrat
   }
 
   // Run topological sort.
-  const sortedStreams: [StreamId<any>, StreamRegistrationNode<any>][] = [];
+  const sortedStreams: Array<[StreamId<any>, StreamRegistrationNode<any>]> = [];
   while (potentialRoots.size > 0) {
     const rootId = [...potentialRoots][0];
 

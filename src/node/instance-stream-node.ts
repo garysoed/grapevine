@@ -8,6 +8,9 @@ interface AnyNode {
   getObs(context?: BaseDisposable): any;
 }
 
+/**
+ * Stream node associated with an instance.
+ */
 export class InstanceStreamNode<T> implements InstanceNode<T> {
   private readonly observables_: WeakMap<BaseDisposable, Observable<T>> = new WeakMap();
 

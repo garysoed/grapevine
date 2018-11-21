@@ -4,6 +4,9 @@ import { distinctUntilChanged, shareReplay } from 'rxjs/operators';
 import { StaticNode } from './static-node';
 import { StaticSourceProvider } from './static-source-provider';
 
+/**
+ * Source node not associated with any instances.
+ */
 export class StaticSourceNode<T> implements StaticNode<T> {
 
   constructor(private readonly initializer: StaticSourceProvider<T>) { }

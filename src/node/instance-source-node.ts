@@ -4,6 +4,9 @@ import { distinctUntilChanged, shareReplay } from 'rxjs/operators';
 import { InstanceNode } from './instance-node';
 import { InstanceSourceProvider } from './instance-source-provider';
 
+/**
+ * Source node associated with an instance.
+ */
 export class InstanceSourceNode<T> implements InstanceNode<T> {
   private readonly subjects_: WeakMap<BaseDisposable, BehaviorSubject<T>> = new WeakMap();
 

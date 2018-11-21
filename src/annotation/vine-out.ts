@@ -22,7 +22,7 @@ export function vineOutFactory(
           .getAttachedValues()
           .get(propertyKey);
 
-      const paramsArray: NodeId<any>[] = [];
+      const paramsArray: Array<NodeId<any>> = [];
       for (const {index, id} of paramsSet || []) {
         paramsArray[index] = id;
       }
