@@ -16,7 +16,7 @@ test('main.VineBuilder', () => {
   let builder: VineBuilder;
 
   beforeEach(() => {
-    builder = new VineBuilder(window);
+    builder = new VineBuilder();
   });
 
   test('source', () => {
