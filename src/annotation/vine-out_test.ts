@@ -1,7 +1,7 @@
 import { assert, should, test } from 'gs-testing/export/main';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, of as observableOf } from 'rxjs';
 import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
 import { getOrRegisterApp } from '../main/vine';
@@ -37,13 +37,13 @@ test('annotation.vineOut', () => {
       @vineOut(bId)
       providesB(
           @vineIn(dId) d: number,
-          @vineIn(eId) e: number): number {
-        return d + e;
+          @vineIn(eId) e: number): Observable<number> {
+        return observableOf(d + e);
       }
 
       @vineOut(cId)
-      providesC(@vineIn(fId) f: number): number {
-        return f * f;
+      providesC(@vineIn(fId) f: number): Observable<number> {
+        return observableOf(f * f);
       }
 
       @vineOut(gId)

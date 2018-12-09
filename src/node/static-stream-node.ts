@@ -1,6 +1,8 @@
 import { ImmutableList } from 'gs-tools/export/collect';
-import { combineLatest, Observable, of as observableOf } from 'rxjs';
-import { map, shareReplay } from 'rxjs/operators';
+import { combineLatest, Observable } from 'rxjs';
+import { shareReplay, switchMap } from 'rxjs/operators';
+import { Provider } from '../component/provider';
+import { normalizeObs } from './normalize-obs';
 import { StaticNode } from './static-node';
 
 /**
@@ -11,7 +13,7 @@ export class StaticStreamNode<T> implements StaticNode<T> {
 
   constructor(
       dependencies: ImmutableList<StaticNode<any>>,
-      provider: (...args: any[]) => T,
+      provider: Provider<T>,
   ) {
     this.obs_ = createObs(dependencies, provider);
   }
@@ -23,14 +25,14 @@ export class StaticStreamNode<T> implements StaticNode<T> {
 
 function createObs<T>(
     dependencies: ImmutableList<StaticNode<any>>,
-    provider: (...args: any[]) => T,
+    provider: Provider<T>,
 ): Observable<T> {
   if (provider.length <= 0) {
-    return observableOf(provider());
+    return normalizeObs(provider);
   }
 
   return combineLatest([...dependencies.map(subject => subject.getObs())])
       .pipe(
-          map(args => provider(...args)),
+          switchMap(args => normalizeObs(() => provider(...args))),
           shareReplay(1));
 }

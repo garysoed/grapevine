@@ -1,8 +1,10 @@
 import { ImmutableList } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
-import { combineLatest, Observable, of as observableOf } from 'rxjs';
-import { map, shareReplay } from 'rxjs/operators';
+import { combineLatest, Observable } from 'rxjs';
+import { shareReplay, switchMap } from 'rxjs/operators';
+import { Provider } from '../component/provider';
 import { InstanceNode } from './instance-node';
+import { normalizeObs } from './normalize-obs';
 
 interface AnyNode {
   getObs(context?: BaseDisposable): any;
@@ -16,7 +18,7 @@ export class InstanceStreamNode<T> implements InstanceNode<T> {
 
   constructor(
       private readonly dependencies_: ImmutableList<AnyNode>,
-      private readonly provider_: (this: BaseDisposable, ...args: any[]) => T,
+      private readonly provider_: Provider<T, BaseDisposable>,
   ) { }
 
   getObs(context: BaseDisposable): Observable<T> {
@@ -29,13 +31,15 @@ export class InstanceStreamNode<T> implements InstanceNode<T> {
       return subject.getObs(context);
     });
 
-    let newObservable;
+    let newObservable: Observable<T>;
     if (dependenciesObs.size() <= 0) {
-      newObservable = observableOf(this.provider_.call(context));
+      newObservable = normalizeObs(() => typeSafeCall(this.provider_, context));
     } else {
       newObservable = combineLatest([...dependenciesObs])
           .pipe(
-              map(args => this.provider_.call(context, ...args)),
+              switchMap(args => {
+                return normalizeObs(() => typeSafeCall(this.provider_, context, ...args));
+              }),
               shareReplay(1),
           );
     }
@@ -45,3 +49,13 @@ export class InstanceStreamNode<T> implements InstanceNode<T> {
     return newObservable;
   }
 }
+
+function typeSafeCall<T, R, A extends unknown[]>(
+    fn: (this: T, ...args: A) => R,
+    context: T,
+    // tslint:disable-next-line:trailing-comma
+    ...args: A
+): R {
+  return fn.call(context, ...args);
+}
+
