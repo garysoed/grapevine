@@ -1,5 +1,6 @@
 import { Annotations } from 'gs-tools/export/data';
 import { Errors } from 'gs-tools/export/error';
+import { of as observableOf } from 'rxjs';
 import { InstanceStreamId } from '../component/instance-stream-id';
 import { NodeId } from '../component/node-id';
 import { VineBuilder } from '../main/vine-builder';
@@ -30,7 +31,7 @@ export function vineOutFactory(
 
       // tslint:disable-next-line:typedef
       const handler = (target as any)[propertyKey] || function(this: any) {
-        return this[propertyKey];
+        return observableOf(this[propertyKey]);
       };
       if (!(handler instanceof Function)) {
         throw Errors.assert(`Type of ${target.constructor.name}.${propertyKey.toString()}`)

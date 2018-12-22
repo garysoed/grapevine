@@ -1,6 +1,7 @@
 import { assert, should, test } from 'gs-testing/export/main';
 import { ImmutableList } from 'gs-tools/export/collect';
-import { BehaviorSubject, of as observableOf } from 'rxjs';
+import { BehaviorSubject, Observable, of as observableOf } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { StaticSourceNode } from './static-source-node';
 import { StaticStreamNode } from './static-stream-node';
 
@@ -10,7 +11,7 @@ test('node.StaticStreamNode', () => {
       const sourceNode = new StaticSourceNode(() => 3);
       const node = new StaticStreamNode(
           ImmutableList.of([sourceNode]),
-          input => input * 2,
+          (inputObs: Observable<number>) => inputObs.pipe(map(v => v * 2)),
       );
 
       const subject = new BehaviorSubject<number|null>(null);
@@ -24,7 +25,7 @@ test('node.StaticStreamNode', () => {
     should(`work with provides with no input`, () => {
       const node = new StaticStreamNode(
           ImmutableList.of([]),
-          () => 2,
+          () => observableOf(2),
       );
 
       const subject = new BehaviorSubject<number|null>(null);
@@ -36,7 +37,7 @@ test('node.StaticStreamNode', () => {
       const sourceNode = new StaticSourceNode(() => 3);
       const node = new StaticStreamNode(
           ImmutableList.of([sourceNode]),
-          input => observableOf(input * 2),
+          (input: Observable<number>) => input.pipe(map(v => v * 2)),
       );
 
       const subject = new BehaviorSubject<number|null>(null);
@@ -62,7 +63,7 @@ test('node.StaticStreamNode', () => {
       const sourceNode = new StaticSourceNode(() => 3);
       const node = new StaticStreamNode(
           ImmutableList.of([sourceNode]),
-          input => input * 2,
+          (inputObs: Observable<number>) => inputObs.pipe(map(v => v * 2)),
       );
 
       const subject1 = new BehaviorSubject<number|null>(null);

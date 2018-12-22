@@ -1,10 +1,8 @@
 import { ImmutableList } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
-import { combineLatest, Observable } from 'rxjs';
-import { shareReplay, switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { Provider } from '../component/provider';
 import { InstanceNode } from './instance-node';
-import { normalizeObs } from './normalize-obs';
 
 interface AnyNode {
   getObs(context?: BaseDisposable): any;
@@ -31,19 +29,7 @@ export class InstanceStreamNode<T> implements InstanceNode<T> {
       return subject.getObs(context);
     });
 
-    let newObservable: Observable<T>;
-    if (dependenciesObs.size() <= 0) {
-      newObservable = normalizeObs(() => typeSafeCall(this.provider_, context));
-    } else {
-      newObservable = combineLatest([...dependenciesObs])
-          .pipe(
-              switchMap(args => {
-                return normalizeObs(() => typeSafeCall(this.provider_, context, ...args));
-              }),
-              shareReplay(1),
-          );
-    }
-
+    const newObservable = typeSafeCall(this.provider_, context, ...dependenciesObs);
     this.observables_.set(context, newObservable);
 
     return newObservable;

@@ -168,38 +168,38 @@ export class VineBuilder {
     this.registeredSources_.set(nodeId, sourceRegistrationNode);
   }
 
-  stream<T>(
-      nodeId: StaticStreamId<T>|InstanceStreamId<T>,
-      provider: Provider0<T>): void;
+  stream<V>(
+      nodeId: StaticStreamId<V>|InstanceStreamId<V>,
+      provider: Provider0<V, void>): void;
 
-  stream<T, P0>(
-      nodeId: StaticStreamId<T>,
-      provider: Provider1<T, P0>,
+  stream<V, P0>(
+      nodeId: StaticStreamId<V>,
+      provider: Provider1<V, void, P0>,
       arg0: StaticStreamId<P0>|StaticSourceId<P0>): void;
-  stream<T, P0, P1>(
-      nodeId: StaticStreamId<T>,
-      provider: Provider2<T, P0, P1>,
+  stream<V, P0, P1>(
+      nodeId: StaticStreamId<V>,
+      provider: Provider2<V, void, P0, P1>,
       arg0: StaticStreamId<P0>|StaticSourceId<P0>,
       arg1: StaticStreamId<P1>|StaticSourceId<P1>): void;
-  stream<T, P0, P1, P2>(
-      nodeId: StaticStreamId<T>,
-      provider: Provider3<T, P0, P1, P2>,
+  stream<V, P0, P1, P2>(
+      nodeId: StaticStreamId<V>,
+      provider: Provider3<V, void, P0, P1, P2>,
       arg0: StaticStreamId<P0>|StaticSourceId<P0>,
       arg1: StaticStreamId<P1>|StaticSourceId<P1>,
       arg2: StaticStreamId<P2>|StaticSourceId<P2>): void;
 
-  stream<T, P0>(
-      nodeId: InstanceStreamId<T>,
-      provider: Provider1<T, P0>,
+  stream<V, T, P0>(
+      nodeId: InstanceStreamId<V>,
+      provider: Provider1<V, T, P0>,
       arg0: NodeId<P0>): void;
-  stream<T, P0, P1>(
-      nodeId: InstanceStreamId<T>,
-      provider: Provider2<T, P0, P1>,
+  stream<V, T, P0, P1>(
+      nodeId: InstanceStreamId<V>,
+      provider: Provider2<V, T, P0, P1>,
       arg0: NodeId<P0>,
       arg1: NodeId<P1>): void;
-  stream<T, P0, P1, P2>(
-      nodeId: InstanceStreamId<T>,
-      provider: Provider3<T, P0, P1, P2>,
+  stream<V, T, P0, P1, P2>(
+      nodeId: InstanceStreamId<V>,
+      provider: Provider3<V, T, P0, P1, P2>,
       arg0: NodeId<P0>,
       arg1: NodeId<P1>,
       arg2: NodeId<P2>): void;

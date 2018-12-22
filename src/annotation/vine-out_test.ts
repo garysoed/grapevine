@@ -1,7 +1,8 @@
 import { assert, should, test } from 'gs-testing/export/main';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
-import { BehaviorSubject, Observable, of as observableOf } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, of as observableOf } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
 import { getOrRegisterApp } from '../main/vine';
@@ -29,33 +30,33 @@ test('annotation.vineOut', () => {
 
       @vineOut(aId)
       providesA(
-          @vineIn(bId) b: number,
-          @vineIn(cId) c: number): number {
-        return b * c;
+          @vineIn(bId) b: Observable<number>,
+          @vineIn(cId) c: Observable<number>): Observable<number> {
+        return combineLatest(b, c).pipe(map(([b, c]) => b * c));
       }
 
       @vineOut(bId)
       providesB(
-          @vineIn(dId) d: number,
-          @vineIn(eId) e: number): Observable<number> {
-        return observableOf(d + e);
+          @vineIn(dId) d: Observable<number>,
+          @vineIn(eId) e: Observable<number>): Observable<number> {
+        return combineLatest(d, e).pipe(map(([d, e]) => d + e));
       }
 
       @vineOut(cId)
-      providesC(@vineIn(fId) f: number): Observable<number> {
-        return observableOf(f * f);
+      providesC(@vineIn(fId) f: Observable<number>): Observable<number> {
+        return f.pipe(map(f => f * f));
       }
 
       @vineOut(gId)
       providesG(
-          @vineIn(cId) c: number,
-          @vineIn(hId) h: number): number {
-        return c + h;
+          @vineIn(cId) c: Observable<number>,
+          @vineIn(hId) h: Observable<number>): Observable<number> {
+        return combineLatest(c, h).pipe(map(([c, h]) => c + h));
       }
 
       @vineOut(mainId)
-      providesMain(@vineIn(aId) a: number): string {
-        return `${a}`;
+      providesMain(@vineIn(aId) a: Observable<number>): Observable<string> {
+        return a.pipe(map(a => `${a}`));
       }
     }
 

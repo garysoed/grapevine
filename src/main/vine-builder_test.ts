@@ -3,7 +3,8 @@ import 'jasmine';
 import { assert, should, test } from 'gs-testing/export/main';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
 import { staticSourceId } from '../component/static-source-id';
@@ -74,11 +75,28 @@ test('main.VineBuilder', () => {
 
       const context = new BaseDisposable();
 
-      builder.stream(mainId, (value: number) => `${value}`, aId);
-      builder.stream(aId, (b: number, c: number) => b * c, bId, cId);
-      builder.stream(bId, (d: number, e: number) => d + e, dId, eId);
-      builder.stream(cId, (f: number) => f * f, fId);
-      builder.stream(gId, (h: number, c: number) => h + c, hId, cId);
+      builder.stream(
+          mainId,
+          (value: Observable<number>) => value.pipe(map(v => `${v}`)), aId);
+      builder.stream(
+          aId,
+          (b: Observable<number>, c: Observable<number>) =>
+              combineLatest(b, c).pipe(map(([b, c]) => b * c)),
+          bId,
+          cId);
+      builder.stream(
+          bId,
+          (d: Observable<number>, e: Observable<number>) =>
+              combineLatest(d, e).pipe(map(([d, e]) => d + e)),
+          dId,
+          eId);
+      builder.stream(cId, (f: Observable<number>) => f.pipe(map(f => f * f)), fId);
+      builder.stream(
+          gId,
+          (h: Observable<number>, c: Observable<number>) =>
+              combineLatest(h, c).pipe(map(([h, c]) => h + c)),
+          hId,
+          cId);
       builder.source(dId, 1);
       builder.source(eId, 2);
       builder.source(fId, 3);
