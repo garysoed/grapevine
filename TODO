@@ -1,2 +1,6 @@
 grapevine
-  ☐ Add @listen annotation.
+  v 1.1
+    ✔ #resolveParams, allows caller to get the parameters of a property. @done(18-12-23 15:31)
+
+  Next steps:
+    ☐ Clean up Annotations code.

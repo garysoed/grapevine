@@ -1,6 +1,7 @@
 import 'jasmine';
 
 import { assert, should, test } from 'gs-testing/export/main';
+import { Annotations } from 'gs-tools/export/data';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
@@ -17,7 +18,7 @@ test('main.VineBuilder', () => {
   let builder: VineBuilder;
 
   beforeEach(() => {
-    builder = new VineBuilder();
+    builder = new VineBuilder(Annotations.of(Symbol('vineIn')));
   });
 
   test('source', () => {

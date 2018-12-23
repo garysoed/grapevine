@@ -2,6 +2,7 @@ import 'jasmine';
 
 import { assert, should, test } from 'gs-testing/export/main';
 import { ImmutableMap } from 'gs-tools/export/collect';
+import { Annotations } from 'gs-tools/export/data';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType } from 'gs-types/export';
 import { BehaviorSubject } from 'rxjs';
@@ -21,6 +22,7 @@ test('main.VineImpl', () => {
       const vine = new VineImpl(
           ImmutableMap.of([[id, sourceSubject]]),
           ImmutableMap.of(),
+          Annotations.of(Symbol('annotations')),
       );
 
       const subject = new BehaviorSubject<number|null>(null);
@@ -39,6 +41,7 @@ test('main.VineImpl', () => {
       const vine = new VineImpl(
           ImmutableMap.of([[id, sourceSubject]]),
           ImmutableMap.of(),
+          Annotations.of(Symbol('annotations')),
       );
 
       const subject = new BehaviorSubject<number|null>(null);
@@ -53,6 +56,7 @@ test('main.VineImpl', () => {
       const vine = new VineImpl(
           ImmutableMap.of(),
           ImmutableMap.of(),
+          Annotations.of(Symbol('annotations')),
       );
 
       assert(() => {

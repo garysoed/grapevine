@@ -24,7 +24,7 @@ export function getOrRegisterApp(appName: string): VineApp {
   }
 
   const annotationsCache = new Annotations<VineInData>(Symbol(appName));
-  const builder = new VineBuilder();
+  const builder = new VineBuilder(annotationsCache);
   const vineIn = vineInFactory(annotationsCache);
   const vineOut = vineOutFactory(annotationsCache, builder, vineIn);
   const newApp = {

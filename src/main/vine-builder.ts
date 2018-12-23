@@ -1,7 +1,11 @@
 import { ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
+import { Annotations } from 'gs-tools/export/data';
+import { BaseDisposable } from 'gs-tools/export/dispose';
 import { Errors } from 'gs-tools/export/error';
 import { InstanceofType, IterableOfType } from 'gs-types/export';
 import { UnionType } from 'gs-types/src/union-type';
+import { Observable } from 'rxjs';
+import { VineInData } from '../annotation/vine-in';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';
 import { NodeId } from '../component/node-id';
@@ -59,6 +63,8 @@ export class VineBuilder {
   private readonly onRunSet_: Set<OnRunFn> = new Set();
   private readonly registeredSources_: Map<SourceId<any>, SourceRegistrationNode<any>> = new Map();
   private readonly registeredStreams_: Map<StreamId<any>, StreamRegistrationNode<any>> = new Map();
+
+  constructor(private readonly vineInAnnotations: Annotations<VineInData>) { }
 
   genericStream<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: Array<NodeId<any>>): void {
     this.stream_(nodeId, provider, ...args);
@@ -130,6 +136,7 @@ export class VineBuilder {
     vine = new VineImpl(
         ImmutableMap.of(sourceMap),
         ImmutableMap.of(streamMap),
+        this.vineInAnnotations,
     );
 
     for (const onRun of this.onRunSet_) {
@@ -169,9 +176,8 @@ export class VineBuilder {
   }
 
   stream<V>(
-      nodeId: StaticStreamId<V>|InstanceStreamId<V>,
+      nodeId: StaticStreamId<V>,
       provider: Provider0<V, void>): void;
-
   stream<V, P0>(
       nodeId: StaticStreamId<V>,
       provider: Provider1<V, void, P0>,
@@ -188,6 +194,10 @@ export class VineBuilder {
       arg1: StaticStreamId<P1>|StaticSourceId<P1>,
       arg2: StaticStreamId<P2>|StaticSourceId<P2>): void;
 
+
+  stream<V, T>(
+      nodeId: InstanceStreamId<V>,
+      provider: Provider0<V, T>): void;
   stream<V, T, P0>(
       nodeId: InstanceStreamId<V>,
       provider: Provider1<V, T, P0>,

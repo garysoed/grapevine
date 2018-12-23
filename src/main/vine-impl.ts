@@ -1,6 +1,8 @@
-import { ImmutableMap } from 'gs-tools/export/collect';
+import { ImmutableList, ImmutableMap, Orderings } from 'gs-tools/export/collect';
+import { Annotations } from 'gs-tools/export/data';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { Observable } from 'rxjs';
+import { VineInData } from '../annotation/vine-in';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';
 import { NodeId } from '../component/node-id';
@@ -25,7 +27,22 @@ type StreamNode<T> = StaticStreamNode<T>|InstanceStreamNode<T>;
 export class VineImpl {
   constructor(
       private readonly sourceMap_: ImmutableMap<SourceId<any>, SourceNode<any>>,
-      private readonly streamMap_: ImmutableMap<StreamId<any>, StreamNode<any>>) {
+      private readonly streamMap_: ImmutableMap<StreamId<any>, StreamNode<any>>,
+      private readonly vineInAnnotations: Annotations<VineInData>,
+  ) { }
+
+  private getNode(nodeId: NodeId<VineImpl>): AnyNode<VineImpl>;
+  private getNode<T>(nodeId: NodeId<T>): AnyNode<T>|null;
+  private getNode(nodeId: NodeId<any>): AnyNode<any>|null {
+    if (nodeId instanceof StaticSourceId || nodeId instanceof InstanceSourceId) {
+      return this.sourceMap_.get(nodeId) || null;
+    }
+
+    if (nodeId instanceof StaticStreamId || nodeId instanceof InstanceStreamId) {
+      return this.streamMap_.get(nodeId) || null;
+    }
+
+    return null;
   }
 
   getObservable<T>(staticId: StaticSourceId<T>|StaticStreamId<T>): Observable<T>;
@@ -37,7 +54,7 @@ export class VineImpl {
       nodeId: NodeId<T>,
       context: BaseDisposable = GLOBAL_CONTEXT,
   ): Observable<T> {
-    const subject = this.getSubject_(nodeId);
+    const subject = this.getNode(nodeId);
     if (!subject) {
       throw new Error(`Node for ${nodeId} cannot be found`);
     }
@@ -45,18 +62,28 @@ export class VineImpl {
     return getObs(subject, context);
   }
 
-  private getSubject_(nodeId: NodeId<VineImpl>): AnyNode<VineImpl>;
-  private getSubject_<T>(nodeId: NodeId<T>): AnyNode<T>|null;
-  private getSubject_(nodeId: NodeId<any>): AnyNode<any>|null {
-    if (nodeId instanceof StaticSourceId || nodeId instanceof InstanceSourceId) {
-      return this.sourceMap_.get(nodeId) || null;
-    }
+  resolveParams(
+      context: BaseDisposable,
+      propertyKey: string|symbol,
+  ): ImmutableList<Observable<any>> {
+    const values = this.vineInAnnotations
+        .forCtor(context.constructor)
+        .getAttachedValues()
+        .get(propertyKey) || ImmutableList.of();
 
-    if (nodeId instanceof StaticStreamId || nodeId instanceof InstanceStreamId) {
-      return this.streamMap_.get(nodeId) || null;
-    }
+    return values
+        .sort(Orderings.map(({index}) => index, Orderings.normal()))
+        .mapItem(vineInData => {
+          const node = this.getNode(vineInData.id);
+          if (!node) {
+            throw new Error(`Cannot find node for ${vineInData.id}`);
+          }
 
-    return null;
+          const obs = getObs(node, context);
+          (obs as any)['$id'] = vineInData.id;
+
+          return obs;
+        });
   }
 
   setValue<T>(sourceId: StaticSourceId<T>, newValue: T): void;
@@ -75,11 +102,11 @@ export class VineImpl {
   }
 }
 
-function getObs<T>(subject: AnyNode<T>, context: BaseDisposable): Observable<T> {
-  if (subject instanceof InstanceSourceNode ||
-      subject instanceof InstanceStreamNode) {
-    return subject.getObs(context);
+function getObs<T>(node: AnyNode<T>, context: BaseDisposable): Observable<T> {
+  if (node instanceof InstanceSourceNode ||
+      node instanceof InstanceStreamNode) {
+    return node.getObs(context);
   } else  {
-    return subject.getObs();
+    return node.getObs();
   }
 }
