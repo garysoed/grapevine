@@ -11,6 +11,11 @@ module.exports = {
   devtool: "source-map",
 
   resolve: {
+    alias: {
+      'gs-tools': path.resolve('./node_modules/gs-tools'),
+      'rxjs': path.resolve('./node_modules/rxjs'),
+      'tslib': path.resolve('./node_modules/tslib'),
+    },
     // Add '.ts' and '.tsx' as resolvable extensions.
     extensions: [".ts", ".tsx", ".js", ".json"]
   },
