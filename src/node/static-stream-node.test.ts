@@ -1,5 +1,5 @@
 import { assert, should, test } from 'gs-testing/export/main';
-import { ImmutableList } from 'gs-tools/export/collect';
+import { createImmutableList } from 'gs-tools/export/collect';
 import { BehaviorSubject, Observable, of as observableOf } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { StaticSourceNode } from './static-source-node';
@@ -10,7 +10,7 @@ test('node.StaticStreamNode', () => {
     should(`return the correct observable`, () => {
       const sourceNode = new StaticSourceNode(() => 3);
       const node = new StaticStreamNode(
-          ImmutableList.of([sourceNode]),
+          createImmutableList([sourceNode]),
           (inputObs: Observable<number>) => inputObs.pipe(map(v => v * 2)),
       );
 
@@ -24,7 +24,7 @@ test('node.StaticStreamNode', () => {
 
     should(`work with provides with no input`, () => {
       const node = new StaticStreamNode(
-          ImmutableList.of([]),
+          createImmutableList([]),
           () => observableOf(2),
       );
 
@@ -36,7 +36,7 @@ test('node.StaticStreamNode', () => {
     should(`return the correct observable if the function returns observable`, () => {
       const sourceNode = new StaticSourceNode(() => 3);
       const node = new StaticStreamNode(
-          ImmutableList.of([sourceNode]),
+          createImmutableList([sourceNode]),
           (input: Observable<number>) => input.pipe(map(v => v * 2)),
       );
 
@@ -50,7 +50,7 @@ test('node.StaticStreamNode', () => {
 
     should(`work with provides with no input`, () => {
       const node = new StaticStreamNode(
-          ImmutableList.of([]),
+          createImmutableList([]),
           () => observableOf(2),
       );
 
@@ -62,7 +62,7 @@ test('node.StaticStreamNode', () => {
     should(`reuse existing observable`, () => {
       const sourceNode = new StaticSourceNode(() => 3);
       const node = new StaticStreamNode(
-          ImmutableList.of([sourceNode]),
+          createImmutableList([sourceNode]),
           (inputObs: Observable<number>) => inputObs.pipe(map(v => v * 2)),
       );
 

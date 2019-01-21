@@ -1,15 +1,23 @@
-import { assert, should, test } from 'gs-testing/export/main';
+import { assert, setup, should, teardown, test } from 'gs-testing/export/main';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
 import { BehaviorSubject, combineLatest, Observable, of as observableOf } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
-import { getOrRegisterApp } from '../main/vine';
+import { clearApps, getOrRegisterApp, VineApp } from '../main/vine';
 
-const {builder, vineIn, vineOut} = getOrRegisterApp('test(');
+test.only('annotation.vineOut', () => {
+  let _v: VineApp;
 
-test('annotation.vineOut', () => {
+  setup(() => {
+    _v = getOrRegisterApp('test');
+  });
+
+  teardown(() => {
+    clearApps();
+  });
+
   should(`set up the stream correctly`, () => {
     const mainId = instanceStreamId('main', StringType);
     const aId = instanceStreamId('a', NumberType);
@@ -26,46 +34,46 @@ test('annotation.vineOut', () => {
      * @test
      */
     class TestClass extends BaseDisposable {
-      @vineOut(jId) public readonly j: number = 123;
+      @_v.vineOut(jId) public readonly j: number = 123;
 
-      @vineOut(aId)
+      @_v.vineOut(aId)
       providesA(
-          @vineIn(bId) b: Observable<number>,
-          @vineIn(cId) c: Observable<number>): Observable<number> {
+          @_v.vineIn(bId) b: Observable<number>,
+          @_v.vineIn(cId) c: Observable<number>): Observable<number> {
         return combineLatest(b, c).pipe(map(([b, c]) => b * c));
       }
 
-      @vineOut(bId)
+      @_v.vineOut(bId)
       providesB(
-          @vineIn(dId) d: Observable<number>,
-          @vineIn(eId) e: Observable<number>): Observable<number> {
+          @_v.vineIn(dId) d: Observable<number>,
+          @_v.vineIn(eId) e: Observable<number>): Observable<number> {
         return combineLatest(d, e).pipe(map(([d, e]) => d + e));
       }
 
-      @vineOut(cId)
-      providesC(@vineIn(fId) f: Observable<number>): Observable<number> {
+      @_v.vineOut(cId)
+      providesC(@_v.vineIn(fId) f: Observable<number>): Observable<number> {
         return f.pipe(map(f => f * f));
       }
 
-      @vineOut(gId)
+      @_v.vineOut(gId)
       providesG(
-          @vineIn(cId) c: Observable<number>,
-          @vineIn(hId) h: Observable<number>): Observable<number> {
+          @_v.vineIn(cId) c: Observable<number>,
+          @_v.vineIn(hId) h: Observable<number>): Observable<number> {
         return combineLatest(c, h).pipe(map(([c, h]) => c + h));
       }
 
-      @vineOut(mainId)
-      providesMain(@vineIn(aId) a: Observable<number>): Observable<string> {
+      @_v.vineOut(mainId)
+      providesMain(@_v.vineIn(aId) a: Observable<number>): Observable<string> {
         return a.pipe(map(a => `${a}`));
       }
     }
 
-    builder.source(dId, 1);
-    builder.source(eId, 2);
-    builder.source(fId, 3);
-    builder.source(hId, 4);
+    _v.builder.source(dId, 1);
+    _v.builder.source(eId, 2);
+    _v.builder.source(fId, 3);
+    _v.builder.source(hId, 4);
 
-    const vine = builder.run();
+    const vine = _v.builder.run([TestClass]);
     const mainSubject = new BehaviorSubject<string|null>(null);
     const cSubject = new BehaviorSubject<number|null>(null);
     const gSubject = new BehaviorSubject<number|null>(null);

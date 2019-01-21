@@ -1,18 +1,26 @@
 import 'jasmine';
 
-import { assert, should, test } from 'gs-testing/export/main';
-import { ImmutableMap } from 'gs-tools/export/collect';
-import { Annotations } from 'gs-tools/export/data';
+import { assert, setup, should, test } from 'gs-testing/export/main';
+import { createSpyInstance } from 'gs-testing/export/spy';
+import { createImmutableMap } from 'gs-tools/export/collect';
+import { PropertyAnnotation } from 'gs-tools/export/data';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType } from 'gs-types/export';
 import { BehaviorSubject } from 'rxjs';
 import { instanceSourceId } from '../component/instance-source-id';
+import { InstanceStreamId } from '../component/instance-stream-id';
 import { staticSourceId } from '../component/static-source-id';
 import { InstanceSourceNode } from '../node/instance-source-node';
 import { StaticSourceNode } from '../node/static-source-node';
 import { VineImpl } from './vine-impl';
 
 test('main.VineImpl', () => {
+  let mockPropertyAnnotation: PropertyAnnotation<{id: InstanceStreamId<any>}>;
+
+  setup(() => {
+    mockPropertyAnnotation = createSpyInstance(PropertyAnnotation);
+  });
+
   test('setValue', () => {
     should(`set the value correctly for static source nodes`, () => {
       const id = staticSourceId('id', NumberType);
@@ -20,9 +28,10 @@ test('main.VineImpl', () => {
       const sourceSubject = new StaticSourceNode(() => 1);
 
       const vine = new VineImpl(
-          ImmutableMap.of([[id, sourceSubject]]),
-          ImmutableMap.of(),
-          Annotations.of(Symbol('annotations')),
+          createImmutableMap([[id, sourceSubject]]),
+          createImmutableMap(),
+          mockPropertyAnnotation,
+          createImmutableMap(),
       );
 
       const subject = new BehaviorSubject<number|null>(null);
@@ -39,9 +48,10 @@ test('main.VineImpl', () => {
       const context = new BaseDisposable();
 
       const vine = new VineImpl(
-          ImmutableMap.of([[id, sourceSubject]]),
-          ImmutableMap.of(),
-          Annotations.of(Symbol('annotations')),
+          createImmutableMap([[id, sourceSubject]]),
+          createImmutableMap(),
+          mockPropertyAnnotation,
+          createImmutableMap(),
       );
 
       const subject = new BehaviorSubject<number|null>(null);
@@ -54,9 +64,10 @@ test('main.VineImpl', () => {
     should(`throw error if the node cannot be found`, () => {
       const nodeId = staticSourceId('sourceId', NumberType);
       const vine = new VineImpl(
-          ImmutableMap.of(),
-          ImmutableMap.of(),
-          Annotations.of(Symbol('annotations')),
+          createImmutableMap(),
+          createImmutableMap(),
+          mockPropertyAnnotation,
+          createImmutableMap(),
       );
 
       assert(() => {

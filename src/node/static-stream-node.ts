@@ -1,4 +1,4 @@
-import { ImmutableList } from 'gs-tools/export/collect';
+import { $map, ImmutableList, $exec } from 'gs-tools/export/collect';
 import { Observable } from 'rxjs';
 import { Provider } from '../component/provider';
 import { normalizeObs } from './normalize-obs';
@@ -30,5 +30,5 @@ function createObs<T>(
     return normalizeObs(provider);
   }
 
-  return provider(...dependencies.map(subject => subject.getObs()));
+  return provider(...$exec(dependencies, $map(subject => subject.getObs()))());
 }

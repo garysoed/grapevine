@@ -1,4 +1,4 @@
-import { ImmutableList } from 'gs-tools/export/collect';
+import { $exec, $map, ImmutableList } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { Observable } from 'rxjs';
 import { Provider } from '../component/provider';
@@ -25,18 +25,18 @@ export class InstanceStreamNode<T> implements InstanceNode<T> {
       return obs;
     }
 
-    const dependenciesObs = this.dependencies_.map(subject => {
+    const dependenciesObs = $exec(this.dependencies_, $map(subject => {
       return subject.getObs(context);
-    });
+    }));
 
-    const newObservable = typeSafeCall(this.provider_, context, ...dependenciesObs);
+    const newObservable = typeSafeCall(this.provider_, context, ...dependenciesObs());
     this.observables_.set(context, newObservable);
 
     return newObservable;
   }
 }
 
-function typeSafeCall<T, R, A extends unknown[]>(
+function typeSafeCall<T, R, A extends Array<unknown>>(
     fn: (this: T, ...args: A) => R,
     context: T,
     // tslint:disable-next-line:trailing-comma

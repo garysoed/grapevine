@@ -1,6 +1,7 @@
-import { Annotations } from 'gs-tools/export/data';
-import { VineIn, VineInData, vineInFactory } from '../annotation/vine-in';
+import { ClassAnnotator, ParameterAnnotator, PropertyAnnotator } from 'gs-tools/export/data';
 import { VineOut, vineOutFactory } from '../annotation/vine-out';
+import { InstanceStreamId } from '../component/instance-stream-id';
+import { NodeId } from '../component/node-id';
 import { VineBuilder } from './vine-builder';
 
 /**
@@ -8,8 +9,8 @@ import { VineBuilder } from './vine-builder';
  */
 export interface VineApp {
   builder: VineBuilder;
-  vineIn: VineIn;
   vineOut: VineOut;
+  vineIn(id: NodeId<any>): ParameterDecorator;
 }
 
 const apps = new Map<string, VineApp>();
@@ -23,16 +24,30 @@ export function getOrRegisterApp(appName: string): VineApp {
     return createdApp;
   }
 
-  const annotationsCache = new Annotations<VineInData>(Symbol(appName));
-  const builder = new VineBuilder(annotationsCache);
-  const vineIn = vineInFactory(annotationsCache);
-  const vineOut = vineOutFactory(annotationsCache, builder, vineIn);
+  const vineInAnnotator = new ParameterAnnotator((_0, _1, _2, id: NodeId<any>) => ({id}));
+  const vineOutAnnotator = new PropertyAnnotator((_0, _1, id: InstanceStreamId<any>) => ({id}));
+  const vineOutWithForwardingAnnotator = new ClassAnnotator(
+      (_0, inId: NodeId<any>, outId: InstanceStreamId<any>) => ({
+        data: {inId, outId},
+        newTarget: undefined,
+      }));
+
+  const builder = new VineBuilder(
+      vineInAnnotator,
+      vineOutAnnotator,
+      vineOutWithForwardingAnnotator,
+  );
+  const vineIn = vineInAnnotator.decorator;
   const newApp = {
     builder,
     vineIn,
-    vineOut,
+    vineOut: vineOutFactory(vineOutAnnotator, vineOutWithForwardingAnnotator),
   };
   apps.set(appName, newApp);
 
   return newApp;
+}
+
+export function clearApps(): void {
+  apps.clear();
 }

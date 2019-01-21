@@ -1,7 +1,6 @@
 import 'jasmine';
 
-import { assert, should, test } from 'gs-testing/export/main';
-import { Annotations } from 'gs-tools/export/data';
+import { assert, setup, should, teardown, test } from 'gs-testing/export/main';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType, StringType } from 'gs-types/export';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
@@ -10,27 +9,30 @@ import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
 import { staticSourceId } from '../component/static-source-id';
 import { staticStreamId } from '../component/static-stream-id';
-import { VineBuilder } from './vine-builder';
+import { clearApps, getOrRegisterApp, VineApp } from './vine';
 import { $vine } from './vine-id';
 import { VineImpl } from './vine-impl';
 
 test('main.VineBuilder', () => {
-  let builder: VineBuilder;
+  let _v: VineApp;
+  setup(() => {
+    _v = getOrRegisterApp('test');
+  });
 
-  beforeEach(() => {
-    builder = new VineBuilder(Annotations.of(Symbol('vineIn')));
+  teardown(() => {
+    clearApps();
   });
 
   test('source', () => {
-    should(`register the source correctly`, async () => {
+    should(`register the source correctly`, () => {
       const sourceId = instanceSourceId('sourceId', NumberType);
       const context = new BaseDisposable();
       const initValue = 123;
       const value = 456;
 
-      builder.source(sourceId, initValue);
+      _v.builder.source(sourceId, initValue);
 
-      const vine = builder.run();
+      const vine = _v.builder.run([]);
 
       const subject = new BehaviorSubject<number|null>(null);
       vine.getObservable(sourceId, context).subscribe(subject);
@@ -43,16 +45,16 @@ test('main.VineBuilder', () => {
 
     should(`throw error if the source is already registered`, () => {
       const sourceId = instanceSourceId('sourceId', NumberType);
-      builder.source(sourceId, 123);
+      _v.builder.source(sourceId, 123);
 
       assert(() => {
-        builder.source(sourceId, 456);
+        _v.builder.source(sourceId, 456);
       }).to.throwErrorWithMessage(/have been registered/);
     });
   });
 
   test('stream', () => {
-    should(`set up the stream correctly`, async () => {
+    should(`set up the stream correctly`, () => {
       // Tree:
       // main ('27')
       // |- A (63)
@@ -76,33 +78,33 @@ test('main.VineBuilder', () => {
 
       const context = new BaseDisposable();
 
-      builder.stream(
+      _v.builder.stream(
           mainId,
           (value: Observable<number>) => value.pipe(map(v => `${v}`)), aId);
-      builder.stream(
+      _v.builder.stream(
           aId,
           (b: Observable<number>, c: Observable<number>) =>
               combineLatest(b, c).pipe(map(([b, c]) => b * c)),
           bId,
           cId);
-      builder.stream(
+      _v.builder.stream(
           bId,
           (d: Observable<number>, e: Observable<number>) =>
               combineLatest(d, e).pipe(map(([d, e]) => d + e)),
           dId,
           eId);
-      builder.stream(cId, (f: Observable<number>) => f.pipe(map(f => f * f)), fId);
-      builder.stream(
+      _v.builder.stream(cId, (f: Observable<number>) => f.pipe(map(f => f * f)), fId);
+      _v.builder.stream(
           gId,
           (h: Observable<number>, c: Observable<number>) =>
               combineLatest(h, c).pipe(map(([h, c]) => h + c)),
           hId,
           cId);
-      builder.source(dId, 1);
-      builder.source(eId, 2);
-      builder.source(fId, 3);
-      builder.source(hId, 4);
-      const vine = builder.run();
+      _v.builder.source(dId, 1);
+      _v.builder.source(eId, 2);
+      _v.builder.source(fId, 3);
+      _v.builder.source(hId, 4);
+      const vine = _v.builder.run([]);
 
       const mainHandler = new BehaviorSubject<string|null>(null);
       const cHandler = new BehaviorSubject<number|null>(null);
@@ -128,10 +130,10 @@ test('main.VineBuilder', () => {
       const id = staticStreamId('id', NumberType);
       const vId = staticStreamId('vId', NumberType);
 
-      builder.stream(id, v => v, vId);
+      _v.builder.stream(id, v => v, vId);
 
       assert(() => {
-        builder.stream(id, v => v, vId);
+        _v.builder.stream(id, v => v, vId);
       }).to.throwErrorWithMessage(/been registered/);
     });
 
@@ -139,10 +141,10 @@ test('main.VineBuilder', () => {
       const id = staticStreamId('id', NumberType);
       const vId = staticStreamId('vId', NumberType);
 
-      builder.stream(id, v => v, vId);
+      _v.builder.stream(id, v => v, vId);
 
       assert(() => {
-        builder.run();
+        _v.builder.run([]);
       }).to.throwErrorWithMessage(/not found/);
     });
 
@@ -151,12 +153,13 @@ test('main.VineBuilder', () => {
       const bId = staticStreamId('b', NumberType);
       const cId = staticStreamId('c', NumberType);
 
-      builder.stream(aId, b => b, bId);
-      builder.stream(bId, c => c, cId);
-      builder.stream(cId, a => a, aId);
+      _v.builder.stream(aId, b => b, bId);
+      _v.builder.stream(bId, c => c, cId);
+      _v.builder.stream(cId, a => a, aId);
 
       assert(() => {
-        builder.run();
+        _v.builder.run([]);
+        console.log('done');
       }).to.throwErrorWithMessage(/cyclic dependency/i);
     });
   });

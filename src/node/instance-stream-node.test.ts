@@ -1,5 +1,5 @@
 import { assert, should, test } from 'gs-testing/export/main';
-import { ImmutableList } from 'gs-tools/export/collect';
+import { createImmutableList } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { BehaviorSubject, Observable, of as observableOf } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -31,7 +31,7 @@ test('node.InstanceStreamNode', () => {
       const context = new TestClass();
       const sourceNode = new InstanceSourceNode(() => 3);
       const node = new InstanceStreamNode(
-          ImmutableList.of([sourceNode]),
+          createImmutableList([sourceNode]),
           context.fnWithInput,
       );
 
@@ -47,7 +47,7 @@ test('node.InstanceStreamNode', () => {
       const context = new TestClass();
       const sourceNode = new InstanceSourceNode(() => 3);
       const node = new InstanceStreamNode(
-          ImmutableList.of([sourceNode]),
+          createImmutableList([sourceNode]),
           context.fnWithInput,
       );
 
@@ -62,7 +62,7 @@ test('node.InstanceStreamNode', () => {
     should(`work with provides with no input if the function returns observable`, () => {
       const context = new TestClass();
       const node = new InstanceStreamNode(
-          ImmutableList.of([]),
+          createImmutableList([]),
           context.fnNoInputObs,
       );
 
@@ -75,7 +75,7 @@ test('node.InstanceStreamNode', () => {
       const context = new TestClass();
       const sourceNode = new InstanceSourceNode(() => 3);
       const node = new InstanceStreamNode(
-          ImmutableList.of([sourceNode]),
+          createImmutableList([sourceNode]),
           context.fnWithInput,
       );
 

@@ -1,11 +1,8 @@
-import { ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
-import { Annotations } from 'gs-tools/export/data';
-import { BaseDisposable } from 'gs-tools/export/dispose';
+import { $declareFinite, $exec, $filterPick, $flat, $getKey, $head, $keys, $map, $mapPick, $pick, $scan, asImmutableList, asImmutableMap, createImmutableList, createImmutableMap, ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
+import { ClassAnnotator, ParameterAnnotator, PropertyAnnotator } from 'gs-tools/export/data';
 import { Errors } from 'gs-tools/export/error';
-import { InstanceofType, IterableOfType } from 'gs-types/export';
-import { UnionType } from 'gs-types/src/union-type';
-import { Observable } from 'rxjs';
-import { VineInData } from '../annotation/vine-in';
+import { InstanceofType, IterableOfType, UnionType } from 'gs-types/export';
+import { Observable, of as observableOf } from 'rxjs';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';
 import { NodeId } from '../component/node-id';
@@ -64,10 +61,109 @@ export class VineBuilder {
   private readonly registeredSources_: Map<SourceId<any>, SourceRegistrationNode<any>> = new Map();
   private readonly registeredStreams_: Map<StreamId<any>, StreamRegistrationNode<any>> = new Map();
 
-  constructor(private readonly vineInAnnotations: Annotations<VineInData>) { }
+  constructor(
+      private readonly vineInAnnotation: ParameterAnnotator<{id: NodeId<any>}, any>,
+      private readonly vineOutAnnotation: PropertyAnnotator<{id: InstanceStreamId<any>}, any>,
+      private readonly vineOutWithForwardingParams:
+          ClassAnnotator<{inId: NodeId<any>; outId: InstanceStreamId<any>}, any>,
+  ) { }
 
   genericStream<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: Array<NodeId<any>>): void {
     this.stream_(nodeId, provider, ...args);
+  }
+
+  private getStreams(ctors: Function[]): ImmutableMap<StreamId<any>, StreamRegistrationNode<any>> {
+    const registeredStreams = createImmutableMap(this.registeredStreams_);
+
+    const vineOutMap: Map<StreamId<any>, StreamRegistrationNode<any>> = new Map();
+    for (const ctor of ctors) {
+      // Register the nodes from vine out without forwarding.
+      const annotatedPropertyValues: ImmutableMap<string|symbol, InstanceStreamId<any>> =
+          $exec(
+              this.vineOutAnnotation.data.getAttachedValuesForCtor(ctor),
+              $mapPick(
+                  1,
+                  (objMap): InstanceStreamId<any>|undefined => $exec(
+                      objMap,
+                      $pick(1),
+                      $flat(),
+                      $map(({id}) => id),
+                      $declareFinite(),
+                      $head(),
+                  ),
+              ),
+              $filterPick(1, (id): id is InstanceStreamId<any> => !!id),
+              asImmutableMap(),
+          );
+
+      for (const [propertyKey, outId] of annotatedPropertyValues) {
+        const dependenciesMap: ImmutableMap<number, NodeId<any>> = $exec(
+            this.vineInAnnotation.data.getAttachedValuesForKey(ctor, propertyKey),
+            $mapPick(
+                1,
+                (objMap): NodeId<any>|undefined => $exec(
+                    objMap,
+                    $pick(1),
+                    $flat(),
+                    $map(({id}) => id),
+                    $head(),
+                ),
+            ),
+            $filterPick(1, (id): id is NodeId<any> => !!id),
+            asImmutableMap(),
+        );
+
+        // Creates the dependency array.
+        const maxIndex = $exec(
+            dependenciesMap,
+            $pick(0),
+            $scan((max, current) => Math.max(max, current), -1),
+            $head(),
+        );
+        const paramCount = maxIndex === undefined ? 0 : maxIndex + 1;
+
+        const dependencies: Array<NodeId<any>> = [];
+        for (let i = 0; i < paramCount; i++) {
+          const id = $exec(dependenciesMap, $getKey(i), $pick(1), $head());
+          if (id !== undefined) {
+            dependencies[i] = id;
+          }
+        }
+
+        const providerFn = ctor.prototype[propertyKey] ||
+            function(this: any): Observable<any> { return observableOf(this[propertyKey]); };
+
+        vineOutMap.set(
+            outId,
+            {
+              dependencies: createImmutableList(dependencies),
+              id: outId,
+              providerFn,
+            });
+      }
+
+      // Register the nodes from vineOut with forwarding.
+      const specs: ImmutableList<{inId: NodeId<any>; outId: InstanceStreamId<any>}> =
+          $exec(
+              this.vineOutWithForwardingParams.data.getAttachedValues(ctor),
+              $pick(1),
+              $flat(),
+              $declareFinite(),
+              asImmutableList(),
+          );
+      for (const {inId, outId} of specs) {
+        vineOutMap.set(
+            outId,
+            {
+              dependencies: createImmutableList([inId]),
+              id: outId,
+              providerFn: v => v,
+            },
+        );
+      }
+    }
+
+    return createImmutableMap([...registeredStreams, ...vineOutMap]);
   }
 
   isRegistered(nodeId: SourceId<unknown>|StreamId<unknown>): boolean {
@@ -82,18 +178,20 @@ export class VineBuilder {
     this.onRunSet_.add(callback);
   }
 
-  run(): VineImpl {
+  run(ctors: Function[]): VineImpl {
     const sourceMap = new Map<SourceId<any>, SourceNode<any>>();
     for (const [sourceId, registration] of this.registeredSources_) {
       sourceMap.set(sourceId, createSourceNode_(sourceId, registration));
     }
 
-    const sortedStreams = sortRegistrationMap(this.registeredStreams_);
+    const streams = this.getStreams(ctors);
+    const sortedStreams = sortRegistrationMap(streams);
     const streamMap = new Map<StreamId<any>, StreamNode<any>>();
     for (const [streamId, registration] of sortedStreams) {
       const dependencyNodes: ImmutableList<SourceNode<any>|StreamNode<any>> =
-          registration.dependencies
-              .mapItem(id => {
+          $exec(
+              registration.dependencies,
+              $map(id => {
                 let dependency = null;
                 if (sourceIdType.check(id)) {
                   dependency = sourceMap.get(id);
@@ -108,12 +206,14 @@ export class VineBuilder {
                 }
 
                 return dependency;
-              });
+              }),
+              asImmutableList(),
+          );
 
       let streamNode;
       if (streamId instanceof InstanceStreamId) {
         streamNode = new InstanceStreamNode(
-            dependencyNodes,
+            createImmutableList([...dependencyNodes]),
             registration.providerFn);
       } else {
         if (!staticStreamDependencyType.check(dependencyNodes)) {
@@ -121,9 +221,7 @@ export class VineBuilder {
               .shouldBeA(staticStreamDependencyType).butWas(dependencyNodes);
         }
 
-        streamNode = new StaticStreamNode(
-            dependencyNodes,
-            registration.providerFn);
+        streamNode = new StaticStreamNode(dependencyNodes, registration.providerFn);
       }
       streamMap.set(streamId, streamNode);
     }
@@ -133,10 +231,16 @@ export class VineBuilder {
     const vineNode = new StaticSourceNode(() => vine);
     sourceMap.set($vine, vineNode);
 
+    const vineOutParams: ImmutableMap<StreamId<any>, ImmutableList<NodeId<any>>> = $exec(
+        streams,
+        $mapPick(1, registrationNode => registrationNode.dependencies),
+        asImmutableMap(),
+    );
     vine = new VineImpl(
-        ImmutableMap.of(sourceMap),
-        ImmutableMap.of(streamMap),
-        this.vineInAnnotations,
+        createImmutableMap(sourceMap),
+        createImmutableMap(streamMap),
+        this.vineOutAnnotation.data,
+        vineOutParams,
     );
 
     for (const onRun of this.onRunSet_) {
@@ -220,7 +324,7 @@ export class VineBuilder {
 
   stream_<T>(nodeId: StreamId<T>, provider: Provider<T>, ...args: Array<NodeId<any>>): void {
     const streamRegistration = {
-      dependencies: ImmutableList.of(args),
+      dependencies: createImmutableList(args),
       id: nodeId,
       providerFn: provider,
     };
@@ -232,10 +336,11 @@ export class VineBuilder {
   }
 }
 
-function sortRegistrationMap(registrationMap: Map<StreamId<any>, StreamRegistrationNode<any>>):
-    Array<[StreamId<any>, StreamRegistrationNode<any>]> {
+function sortRegistrationMap(
+    registrationMap: ImmutableMap<StreamId<any>, StreamRegistrationNode<any>>,
+): Array<[StreamId<any>, StreamRegistrationNode<any>]> {
   // Create the graph.
-  const potentialRoots = new Set(registrationMap.keys());
+  const potentialRoots = new Set($exec(registrationMap, $keys())());
   const treeNodes = new Map<StreamId<any>, StreamTreeNode>();
   for (const [id, registration] of registrationMap) {
     const parent = treeNodes.get(id) || {children: new Set(), parents: new Set(), value: id};
@@ -268,7 +373,7 @@ function sortRegistrationMap(registrationMap: Map<StreamId<any>, StreamRegistrat
       continue;
     }
 
-    const registration = registrationMap.get(rootId);
+    const registration = $exec(registrationMap, $getKey(rootId), $pick(1), $head());
     if (!registration) {
       throw new Error(`Registration for ${rootId} not found`);
     }
