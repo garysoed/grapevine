@@ -7,7 +7,7 @@ import { instanceSourceId } from '../component/instance-source-id';
 import { instanceStreamId } from '../component/instance-stream-id';
 import { clearApps, getOrRegisterApp, VineApp } from '../main/vine';
 
-test.only('annotation.vineOut', () => {
+test('annotation.vineOut', () => {
   let _v: VineApp;
 
   setup(() => {

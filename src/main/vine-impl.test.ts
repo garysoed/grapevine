@@ -1,39 +1,31 @@
 import 'jasmine';
 
-import { assert, setup, should, test } from 'gs-testing/export/main';
-import { createSpyInstance } from 'gs-testing/export/spy';
-import { createImmutableMap } from 'gs-tools/export/collect';
-import { PropertyAnnotation } from 'gs-tools/export/data';
+import { assert, setup, should, teardown, test } from 'gs-testing/export/main';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { NumberType } from 'gs-types/export';
 import { BehaviorSubject } from 'rxjs';
 import { instanceSourceId } from '../component/instance-source-id';
-import { InstanceStreamId } from '../component/instance-stream-id';
 import { staticSourceId } from '../component/static-source-id';
-import { InstanceSourceNode } from '../node/instance-source-node';
-import { StaticSourceNode } from '../node/static-source-node';
-import { VineImpl } from './vine-impl';
+import { clearApps, getOrRegisterApp, VineApp } from './vine';
 
 test('main.VineImpl', () => {
-  let mockPropertyAnnotation: PropertyAnnotation<{id: InstanceStreamId<any>}>;
+  let app: VineApp;
 
   setup(() => {
-    mockPropertyAnnotation = createSpyInstance(PropertyAnnotation);
+    app = getOrRegisterApp('test');
+  });
+
+  teardown(() => {
+    clearApps();
   });
 
   test('setValue', () => {
     should(`set the value correctly for static source nodes`, () => {
       const id = staticSourceId('id', NumberType);
       const value = 2;
-      const sourceSubject = new StaticSourceNode(() => 1);
+      app.builder.source(id, 1);
 
-      const vine = new VineImpl(
-          createImmutableMap([[id, sourceSubject]]),
-          createImmutableMap(),
-          mockPropertyAnnotation,
-          createImmutableMap(),
-      );
-
+      const vine = app.builder.run([]);
       const subject = new BehaviorSubject<number|null>(null);
       vine.getObservable(id).subscribe(subject);
 
@@ -44,15 +36,10 @@ test('main.VineImpl', () => {
     should(`set the value correctly for instance source nodes`, () => {
       const id = instanceSourceId('id', NumberType);
       const value = 2;
-      const sourceSubject = new InstanceSourceNode(() => 1);
       const context = new BaseDisposable();
+      app.builder.source(id, 1);
 
-      const vine = new VineImpl(
-          createImmutableMap([[id, sourceSubject]]),
-          createImmutableMap(),
-          mockPropertyAnnotation,
-          createImmutableMap(),
-      );
+      const vine = app.builder.run([]);
 
       const subject = new BehaviorSubject<number|null>(null);
       vine.getObservable(id, context).subscribe(subject);
@@ -63,12 +50,7 @@ test('main.VineImpl', () => {
 
     should(`throw error if the node cannot be found`, () => {
       const nodeId = staticSourceId('sourceId', NumberType);
-      const vine = new VineImpl(
-          createImmutableMap(),
-          createImmutableMap(),
-          mockPropertyAnnotation,
-          createImmutableMap(),
-      );
+      const vine = app.builder.run([]);
 
       assert(() => {
         vine.setValue(nodeId, 12);

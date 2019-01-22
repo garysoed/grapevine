@@ -1,7 +1,5 @@
-import { $exec, $flat, $getKey, $head, $map, $pick, ImmutableList, ImmutableMap, $filterPick } from 'gs-tools/export/collect';
-import { PropertyAnnotation } from 'gs-tools/export/data';
+import { $declareKeyed, $exec, $flat, $getKey, $head, $map, $pick, asImmutableList, createImmutableList, ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
-import { asImmutableList } from 'gs-tools/src/collect/types/immutable-list';
 import { Observable } from 'rxjs';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';
@@ -28,8 +26,8 @@ export class VineImpl {
   constructor(
       private readonly sourceMap_: ImmutableMap<SourceId<any>, SourceNode<any>>,
       private readonly streamMap_: ImmutableMap<StreamId<any>, StreamNode<any>>,
-      private readonly vineOutAnnotation: PropertyAnnotation<{id: InstanceStreamId<any>}>,
-      private readonly vineOutParams: ImmutableMap<StreamId<any>, ImmutableList<NodeId<any>>>,
+      private readonly propertyToNodeMap:
+          ImmutableMap<Function, ImmutableMap<string|symbol, StreamNode<any>>>,
   ) { }
 
   private getNode(nodeId: NodeId<VineImpl>): AnyNode<VineImpl>;
@@ -63,54 +61,27 @@ export class VineImpl {
     return getObs(subject, context);
   }
 
-  private resolveParams(
-      context: BaseDisposable,
-      propertyKey: string|symbol,
-  ): ImmutableList<Observable<any>> {
-    const matchingEntry = $exec(
-        this.vineOutAnnotation.getAttachedValues(context.constructor, propertyKey),
-        $getKey(context.constructor as Object),
-        $pick(1),
-        $flat(),
-        $head(),
-    );
-
-    if (!matchingEntry) {
-      throw new Error(`${context}.${propertyKey.toString()} is not an output node`);
-    }
-
-    return $exec(
-        this.vineOutParams,
-        $getKey(matchingEntry.id as StreamId<any>),
-        $pick(1),
-        $flat(),
-        $map(vineInId => {
-          const node = this.getNode(vineInId);
-          if (!node) {
-            throw new Error(`Cannot find node for ${vineInId}`);
-          }
-
-          const obs = getObs(node, context);
-          (obs as any)['$id'] = vineInId;
-
-          return obs;
-        }),
-        asImmutableList(),
-    );
-  }
-
   // TODO: Return type and property type can be tighter.
   run<C extends BaseDisposable>(
       context: C,
       key: string|symbol,
   ): Observable<unknown> {
-    const params = this.resolveParams(context, key);
-    const fn = (context as any)[key];
-    if (typeof fn !== 'function') {
-      throw new Error(`Property ${key.toString()} of ${context} is not a function`);
+    const matchingEntry = $exec(
+        this.propertyToNodeMap,
+        $getKey(context.constructor as Object),
+        $pick(1),
+        $flat<[string|symbol, StreamNode<any>]>(),
+        $declareKeyed(([key]) => key),
+        $getKey(key),
+        $pick(1),
+        $head(),
+    );
+
+    if (!matchingEntry) {
+      return (context as any)[key]();
     }
 
-    return fn.call(context, ...params);
+    return matchingEntry.getObs(context);
   }
 
   setValue<T>(sourceId: StaticSourceId<T>, newValue: T): void;
