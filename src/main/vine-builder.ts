@@ -1,4 +1,4 @@
-import { $concat, $declareFinite, $exec, $filter, $filterPick, $flat, $getKey, $hasEntry, $head, $keys, $map, $mapPick, $pick, $push, $scan, asImmutableList, asImmutableMap, asImmutableSet, createImmutableList, createImmutableMap, ImmutableList, ImmutableMap, ImmutableSet } from 'gs-tools/export/collect';
+import { $concat, $declareFinite, $exec, $filter, $filterPick, $flat, $getKey, $hasEntry, $head, $keys, $map, $mapPick, $pick, $push, $scan, $tail, asImmutableList, asImmutableMap, asImmutableSet, createImmutableList, createImmutableMap, ImmutableList, ImmutableMap, ImmutableSet } from 'gs-tools/export/collect';
 import { ClassAnnotation, ClassAnnotator, ParameterAnnotation, ParameterAnnotator, PropertyAnnotation, PropertyAnnotator } from 'gs-tools/export/data';
 import { Errors } from 'gs-tools/export/error';
 import { declareKeyed } from 'gs-tools/src/collect/operators/declare-keyed';
@@ -65,8 +65,8 @@ export class VineBuilder {
   private readonly registeredStreams_: Map<StreamId<any>, StreamRegistrationNode<any>> = new Map();
 
   constructor(
-      private readonly vineInAnnotation: ParameterAnnotator<{id: NodeId<any>}, any>,
-      private readonly vineOutAnnotation: PropertyAnnotator<{id: InstanceStreamId<any>}, any>,
+      private readonly vineInAnnotator: ParameterAnnotator<{id: NodeId<any>}, any>,
+      private readonly vineOutAnnotator: PropertyAnnotator<{id: InstanceStreamId<any>}, any>,
       private readonly vineOutWithForwardingParams:
           ClassAnnotator<{inId: NodeId<any>; outId: InstanceStreamId<any>}, any>,
   ) { }
@@ -95,8 +95,8 @@ export class VineBuilder {
     );
     const vineOutRegistrationNodes = createVineOutRegistrationStreamNodes(
         ctors,
-        this.vineInAnnotation.data,
-        this.vineOutAnnotation.data,
+        this.vineInAnnotator.data,
+        this.vineOutAnnotator.data,
         this.vineOutWithForwardingParams.data,
     );
     const streamMap = createStreamNodes(
@@ -110,8 +110,8 @@ export class VineBuilder {
         streamMap,
         createPropertyToNodeMap(
             ctors,
-            this.vineInAnnotation.data,
-            this.vineOutAnnotation.data,
+            this.vineInAnnotator.data,
+            this.vineOutAnnotator.data,
             sourceMap,
             streamMap,
         ),
@@ -217,7 +217,7 @@ function createDependencyArray(
       dependenciesMap,
       $pick(0),
       $scan((max, current) => Math.max(max, current), -1),
-      $head(),
+      $tail(),
   );
   const paramCount = maxIndex === undefined ? 0 : maxIndex + 1;
 
