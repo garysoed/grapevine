@@ -1,4 +1,4 @@
-import { $exec, $map, ImmutableList } from 'gs-tools/export/collect';
+import { $pipe, $map, ImmutableList } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { Observable } from 'rxjs';
 import { Provider } from '../component/provider';
@@ -25,7 +25,7 @@ export class InstanceStreamNode<T> implements InstanceNode<T> {
       return obs;
     }
 
-    const dependenciesObs = $exec(this.dependencies_, $map(subject => {
+    const dependenciesObs = $pipe(this.dependencies_, $map(subject => {
       return subject.getObs(context);
     }));
 

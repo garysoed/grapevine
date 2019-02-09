@@ -1,11 +1,11 @@
-import { $concat, $declareFinite, $exec, $filter, $filterPick, $flat, $getKey, $hasEntry, $head, $keys, $map, $mapPick, $pick, $push, $scan, $tail, asImmutableList, asImmutableMap, asImmutableSet, createImmutableList, createImmutableMap, ImmutableList, ImmutableMap, ImmutableSet } from 'gs-tools/export/collect';
+import { $concat, $debug, $declareFinite, $filter, $filterPick, $flat, $getKey, $hasEntry, $head, $keys, $map, $mapPick, $pick, $pipe, $push, $scan, $tail, asImmutableList, asImmutableMap, asImmutableSet, createImmutableList, createImmutableMap, ImmutableList, ImmutableMap, ImmutableSet } from 'gs-tools/export/collect';
 import { ClassAnnotation, ClassAnnotator, ParameterAnnotation, ParameterAnnotator, PropertyAnnotation, PropertyAnnotator } from 'gs-tools/export/data';
 import { Errors } from 'gs-tools/export/error';
 import { declareKeyed } from 'gs-tools/src/collect/operators/declare-keyed';
 import { filterPick } from 'gs-tools/src/collect/operators/filter-pick';
 import { mapPick } from 'gs-tools/src/collect/operators/map-pick';
-import { InstanceofType, IterableOfType, UnionType } from 'gs-types/export';
-import { Observable, of as observableOf } from 'rxjs';
+import { AnyType, InstanceofType, IterableOfType, UnionType } from 'gs-types/export';
+import { Observable, of as observableOf, Subscription } from 'rxjs';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';
 import { NodeId } from '../component/node-id';
@@ -40,12 +40,7 @@ const sourceIdType = UnionType<SourceId<any>>([
   InstanceofType(InstanceSourceId),
   InstanceofType(StaticSourceId),
 ]);
-const staticStreamDependencyType =
-    IterableOfType<StaticNode<any>, ImmutableList<StaticNode<any>>>(
-        UnionType([
-          InstanceofType(StaticStreamNode),
-          InstanceofType(StaticSourceNode),
-        ]));
+const staticStreamDependencyType = AnyType<ImmutableList<StaticNode<any>>>();
 
 /**
  * Represents a node in the stream tree. Used for running topological sort of the stream tree.
@@ -89,15 +84,18 @@ export class VineBuilder {
 
   run(ctors: Function[]): VineImpl {
     let vine: VineImpl;
+    const vineInAnnotation = this.vineInAnnotator.data;
+    const vineOutAnnotation = this.vineOutAnnotator.data;
+    const vineOutWithForwardingAnnotation = this.vineOutWithForwardingParams.data;
     const sourceMap = createSourceNodes(
         this.registeredSources_,
         () => vine,
     );
     const vineOutRegistrationNodes = createVineOutRegistrationStreamNodes(
         ctors,
-        this.vineInAnnotator.data,
-        this.vineOutAnnotator.data,
-        this.vineOutWithForwardingParams.data,
+        vineInAnnotation,
+        vineOutAnnotation,
+        vineOutWithForwardingAnnotation,
     );
     const streamMap = createStreamNodes(
         createImmutableMap(this.registeredStreams_),
@@ -110,8 +108,8 @@ export class VineBuilder {
         streamMap,
         createPropertyToNodeMap(
             ctors,
-            this.vineInAnnotator.data,
-            this.vineOutAnnotator.data,
+            vineInAnnotation,
+            vineOutAnnotation,
             sourceMap,
             streamMap,
         ),
@@ -213,7 +211,7 @@ export class VineBuilder {
 function createDependencyArray(
     dependenciesMap: ImmutableMap<number, NodeId<any>>,
 ): Array<NodeId<any>> {
-  const maxIndex = $exec(
+  const maxIndex = $pipe(
       dependenciesMap,
       $pick(0),
       $scan((max, current) => Math.max(max, current), -1),
@@ -223,7 +221,7 @@ function createDependencyArray(
 
   const dependencies: Array<NodeId<any>> = [];
   for (let i = 0; i < paramCount; i++) {
-    const id = $exec(dependenciesMap, $getKey(i), $pick(1), $head());
+    const id = $pipe(dependenciesMap, $getKey(i), $pick(1), $head());
     if (id !== undefined) {
       dependencies[i] = id;
     }
@@ -242,11 +240,11 @@ function createVineOutRegistrationStreamNodes(
   for (const ctor of ctors) {
     // Register the nodes from vine out without forwarding.
     const annotatedPropertyValues: ImmutableMap<string|symbol, InstanceStreamId<any>> =
-        $exec(
+        $pipe(
             vineOutAnnotation.getAttachedValuesForCtor(ctor),
             $mapPick(
                 1,
-                (objMap): InstanceStreamId<any>|undefined => $exec(
+                (objMap): InstanceStreamId<any>|undefined => $pipe(
                     objMap,
                     $pick(1),
                     $flat(),
@@ -260,11 +258,11 @@ function createVineOutRegistrationStreamNodes(
         );
 
     for (const [propertyKey, outId] of annotatedPropertyValues) {
-      const dependenciesMap: ImmutableMap<number, NodeId<any>> = $exec(
+      const dependenciesMap: ImmutableMap<number, NodeId<any>> = $pipe(
           vineInAnnotation.getAttachedValuesForKey(ctor, propertyKey),
           $mapPick(
               1,
-              (objMap): NodeId<any>|undefined => $exec(
+              (objMap): NodeId<any>|undefined => $pipe(
                   objMap,
                   $pick(1),
                   $flat(),
@@ -291,14 +289,14 @@ function createVineOutRegistrationStreamNodes(
 
     // Register the nodes from vineOut with forwarding.
     const specs: ImmutableList<{inId: NodeId<any>; outId: InstanceStreamId<any>}> =
-        $exec(
+        $pipe(
             vineOutWithForwardingParams.getAttachedValues(ctor),
             $pick(1),
             $flat(),
             $declareFinite(),
             asImmutableList(),
         );
-    for (const {inId, outId} of specs) {
+    for (const {inId, outId} of specs()) {
       vineOutMap.set(
           outId,
           {
@@ -350,12 +348,12 @@ function createStreamNodes(
   const streamMap = new Map<StreamId<any>, StreamNode<any>>();
   for (const [streamId, registration] of sortedStreams) {
     const dependencyNodes: ImmutableList<SourceNode<any>|StreamNode<any>> =
-        $exec(
+        $pipe(
             registration.dependencies,
             $map(id => {
               let dependency: StreamNode<any>|SourceNode<any>|null = null;
               if (sourceIdType.check(id)) {
-                dependency = $exec(sourceNodes, $getKey(id), $pick(1), $head()) || null;
+                dependency = $pipe(sourceNodes, $getKey(id), $pick(1), $head()) || null;
               }
 
               if (streamIdType.check(id)) {
@@ -374,7 +372,7 @@ function createStreamNodes(
     let streamNode;
     if (streamId instanceof InstanceStreamId) {
       streamNode = new InstanceStreamNode(
-          createImmutableList([...dependencyNodes]),
+          createImmutableList([...dependencyNodes()]),
           registration.providerFn);
     } else {
       if (!staticStreamDependencyType.check(dependencyNodes)) {
@@ -397,20 +395,20 @@ function createPropertyToNodeMap(
     sourceIdToNodeMap: ImmutableMap<SourceId<any>, SourceNode<any>>,
     streamIdToNodeMap: ImmutableMap<StreamId<any>, StreamNode<any>>,
 ): ImmutableMap<Function, ImmutableMap<string|symbol, StreamNode<any>>> {
-  return $exec(
+  return $pipe(
       createImmutableList(ctors),
       $map(ctor => {
         const vineOutAttachedValues = vineOutAnnotation.getAttachedValuesForCtor(ctor);
-        const vineOutMap: ImmutableMap<string|symbol, StreamNode<any>> = $exec(
+        const vineOutMap: ImmutableMap<string|symbol, StreamNode<any>> = $pipe(
             vineOutAttachedValues,
             mapPick(
                 1,
-                objDataMap => $exec(
+                objDataMap => $pipe(
                     objDataMap,
                     $getKey(ctor as Object),
                     $pick(1),
                     $flat<{id: InstanceStreamId<any>}>(),
-                    $map(({id}) => $exec(
+                    $map(({id}) => $pipe(
                         streamIdToNodeMap,
                         $getKey(id as StreamId<any>),
                         $pick(1),
@@ -423,60 +421,67 @@ function createPropertyToNodeMap(
             asImmutableMap(),
         );
 
-        const vineOutKeys: ImmutableSet<string|symbol> = $exec(
+        const vineOutKeys: ImmutableSet<string|symbol> = $pipe(
             vineOutAttachedValues,
             $keys(),
             asImmutableSet(),
         );
-        const nonVineOutMap: ImmutableMap<string|symbol, StreamNode<any>> = $exec(
+
+        const c1 = $pipe(
             vineInAnnotation.getAttachedValuesForCtor(ctor),
             // Filter out the keys that have vineOut annotation
-            $filterPick(0, key => !$exec(vineOutKeys, $hasEntry(key))),
+            $filterPick(0, key => !$pipe(vineOutKeys, $hasEntry(key))),
+        );
+        const attachedValues = $pipe(
+            c1,
             $map(
-                ([key, paramObjMap]) => {
-                  const paramMap: ImmutableMap<number, NodeId<any>> = $exec(
-                      paramObjMap,
-                      $mapPick(
-                          1,
-                          objDataMap => $exec(
-                              objDataMap,
-                              $pick(1),
-                              $flat<{id: NodeId<any>}>(),
-                              $map(({id}) => id),
-                              $head(),
-                          ),
-                      ),
-                      $filterPick(1, (id): id is NodeId<any> => !!id),
-                      asImmutableMap(),
-                  );
+              ([key, paramObjMap]) => {
+                const paramMap: ImmutableMap<number, NodeId<any>> = $pipe(
+                    paramObjMap,
+                    $mapPick(
+                        1,
+                        objDataMap => $pipe(
+                            objDataMap,
+                            $pick(1),
+                            $flat<{id: NodeId<any>}>(),
+                            $map(({id}) => id),
+                            $head(),
+                        ),
+                    ),
+                    $filterPick(1, (id): id is NodeId<any> => !!id),
+                    asImmutableMap(),
+                );
 
-                  const dependencies = $exec(
-                      createImmutableList(createDependencyArray(paramMap)),
-                      $map(id => {
-                        const sourceNode = $exec(sourceIdToNodeMap, $getKey(id), $pick(1), $head());
-                        const streamNode = $exec(streamIdToNodeMap, $getKey(id), $pick(1), $head());
-                        if (!sourceNode && !streamNode) {
-                          throw new Error(`No nodes found for ${id}`);
-                        }
+                const dependencies = $pipe(
+                    createImmutableList(createDependencyArray(paramMap)),
+                    $map(id => {
+                      const sourceNode = $pipe(sourceIdToNodeMap, $getKey(id), $pick(1), $head());
+                      const streamNode = $pipe(streamIdToNodeMap, $getKey(id), $pick(1), $head());
+                      if (!sourceNode && !streamNode) {
+                        throw new Error(`No nodes found for ${id}`);
+                      }
 
-                        return sourceNode || streamNode;
-                      }),
-                      $filter((node): node is StaticStreamNode<any>|InstanceStreamNode<any> => {
-                        return !!node;
-                      }),
-                      asImmutableList(),
-                  );
+                      return sourceNode || streamNode;
+                    }),
+                    $filter((node): node is StaticStreamNode<any>|InstanceStreamNode<any> => {
+                      return !!node;
+                    }),
+                    asImmutableList(),
+                );
 
-                  const node = new InstanceStreamNode(
-                      dependencies,
-                      function(this: any, ...args: any[]): Observable<any> {
-                        return this[key](...args);
-                      },
-                  );
+                const node = new InstanceStreamNode(
+                    dependencies,
+                    function(this: any, ...args: any[]): Observable<any> {
+                      return this[key](...args);
+                    },
+                );
 
-                  return [key, node] as [string|symbol, StreamNode<any>];
-                },
+                return [key, node] as [string|symbol, StreamNode<any>];
+              },
             ),
+        );
+        const nonVineOutMap: ImmutableMap<string|symbol, StreamNode<any>> = $pipe(
+            attachedValues,
             asImmutableMap(),
         );
 
@@ -494,13 +499,13 @@ function sortRegistrationMap(
     registrationMap: ImmutableMap<StreamId<any>, StreamRegistrationNode<any>>,
 ): Array<[StreamId<any>, StreamRegistrationNode<any>]> {
   // Create the graph.
-  const potentialRoots = new Set($exec(registrationMap, $keys())());
+  const potentialRoots = new Set($pipe(registrationMap, $keys())());
   const treeNodes = new Map<StreamId<any>, StreamTreeNode>();
   for (const [id, registration] of registrationMap) {
     const parent = treeNodes.get(id) || {children: new Set(), parents: new Set(), value: id};
 
     // Add the dependencies.
-    for (const childId of registration.dependencies) {
+    for (const childId of registration.dependencies()) {
       if (!streamIdType.check(childId)) {
         continue;
       }
@@ -527,7 +532,7 @@ function sortRegistrationMap(
       continue;
     }
 
-    const registration = $exec(registrationMap, $getKey(rootId), $pick(1), $head());
+    const registration = $pipe(registrationMap, $getKey(rootId), $pick(1), $head());
     if (!registration) {
       throw new Error(`Registration for ${rootId} not found`);
     }

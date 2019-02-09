@@ -1,4 +1,4 @@
-import { $declareKeyed, $exec, $flat, $getKey, $head, $map, $pick, asImmutableList, createImmutableList, ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
+import { $declareKeyed, $pipe, $flat, $getKey, $head, $map, $pick, asImmutableList, createImmutableList, ImmutableList, ImmutableMap } from 'gs-tools/export/collect';
 import { BaseDisposable } from 'gs-tools/export/dispose';
 import { Observable } from 'rxjs';
 import { InstanceSourceId } from '../component/instance-source-id';
@@ -34,11 +34,11 @@ export class VineImpl {
   private getNode<T>(nodeId: NodeId<T>): AnyNode<T>|null;
   private getNode(nodeId: NodeId<any>): AnyNode<any>|null {
     if (nodeId instanceof StaticSourceId || nodeId instanceof InstanceSourceId) {
-      return $exec(this.sourceMap_, $getKey(nodeId), $pick(1), $head()) || null;
+      return $pipe(this.sourceMap_, $getKey(nodeId), $pick(1), $head()) || null;
     }
 
     if (nodeId instanceof StaticStreamId || nodeId instanceof InstanceStreamId) {
-      return $exec(this.streamMap_, $getKey(nodeId), $pick(1), $head()) || null;
+      return $pipe(this.streamMap_, $getKey(nodeId), $pick(1), $head()) || null;
     }
 
     return null;
@@ -66,7 +66,7 @@ export class VineImpl {
       context: C,
       key: string|symbol,
   ): Observable<unknown> {
-    const matchingEntry = $exec(
+    const matchingEntry = $pipe(
         this.propertyToNodeMap,
         $getKey(context.constructor as Object),
         $pick(1),
@@ -87,7 +87,7 @@ export class VineImpl {
   setValue<T>(sourceId: StaticSourceId<T>, newValue: T): void;
   setValue<T>(sourceId: InstanceSourceId<T>, newValue: T, context: BaseDisposable): void;
   setValue<T>(sourceId: SourceId<T>, newValue: T, context: BaseDisposable = GLOBAL_CONTEXT): void {
-    const sourceSubject = $exec(
+    const sourceSubject = $pipe(
         this.sourceMap_,
         $getKey(sourceId),
         $pick(1),
