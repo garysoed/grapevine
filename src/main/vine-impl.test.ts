@@ -1,7 +1,7 @@
 import 'jasmine';
 
-import { assert, setup, should, teardown, test } from 'gs-testing/export/main';
-import { BaseDisposable } from 'gs-tools/export/dispose';
+import { assert, setup, should, teardown, test } from '@gs-testing/main';
+import { BaseDisposable } from '@gs-tools/dispose';
 import { NumberType } from 'gs-types/export';
 import { BehaviorSubject } from 'rxjs';
 import { instanceSourceId } from '../component/instance-source-id';

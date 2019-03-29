@@ -1,4 +1,4 @@
-import { BaseDisposable } from 'gs-tools/export/dispose';
+import { BaseDisposable } from '@gs-tools/dispose';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, shareReplay } from 'rxjs/operators';
 import { InstanceNode } from './instance-node';

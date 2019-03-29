@@ -1,4 +1,4 @@
-import { BaseDisposable } from 'gs-tools/export/dispose';
+import { BaseDisposable } from '@gs-tools/dispose';
 import { Observable } from 'rxjs';
 
 /**

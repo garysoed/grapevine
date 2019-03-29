@@ -1,5 +1,5 @@
-import { assert, setup, should, teardown, test } from 'gs-testing/export/main';
-import { BaseDisposable } from 'gs-tools/export/dispose';
+import { assert, setup, should, teardown, test } from '@gs-testing/main';
+import { BaseDisposable } from '@gs-tools/dispose';
 import { NumberType, StringType } from 'gs-types/export';
 import { BehaviorSubject, combineLatest, Observable, of as observableOf } from 'rxjs';
 import { map } from 'rxjs/operators';

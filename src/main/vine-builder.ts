@@ -1,6 +1,6 @@
-import { $concat, $debug, $declareFinite, $filter, $filterPick, $flat, $getKey, $hasEntry, $head, $keys, $map, $mapPick, $pick, $pipe, $push, $scan, $tail, asImmutableList, asImmutableMap, asImmutableSet, createImmutableList, createImmutableMap, ImmutableList, ImmutableMap, ImmutableSet } from 'gs-tools/export/collect';
-import { ClassAnnotation, ClassAnnotator, ParameterAnnotation, ParameterAnnotator, PropertyAnnotation, PropertyAnnotator } from 'gs-tools/export/data';
-import { Errors } from 'gs-tools/export/error';
+import { $concat, $debug, $declareFinite, $filter, $filterPick, $flat, $getKey, $hasEntry, $head, $keys, $map, $mapPick, $pick, $pipe, $push, $scan, $tail, asImmutableList, asImmutableMap, asImmutableSet, createImmutableList, createImmutableMap, ImmutableList, ImmutableMap, ImmutableSet } from '@gs-tools/collect';
+import { ClassAnnotation, ClassAnnotator, ParameterAnnotation, ParameterAnnotator, PropertyAnnotation, PropertyAnnotator } from '@gs-tools/data';
+import { Errors } from '@gs-tools/error';
 import { declareKeyed } from 'gs-tools/src/collect/operators/declare-keyed';
 import { filterPick } from 'gs-tools/src/collect/operators/filter-pick';
 import { mapPick } from 'gs-tools/src/collect/operators/map-pick';

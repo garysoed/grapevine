@@ -1,6 +1,6 @@
-import { assert, should, test } from 'gs-testing/export/main';
-import { createImmutableList } from 'gs-tools/export/collect';
-import { BaseDisposable } from 'gs-tools/export/dispose';
+import { assert, should, test } from '@gs-testing/main';
+import { createImmutableList } from '@gs-tools/collect';
+import { BaseDisposable } from '@gs-tools/dispose';
 import { BehaviorSubject, Observable, of as observableOf } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { InstanceSourceNode } from './instance-source-node';

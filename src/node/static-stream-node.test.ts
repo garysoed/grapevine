@@ -1,5 +1,5 @@
-import { assert, should, test } from 'gs-testing/export/main';
-import { createImmutableList } from 'gs-tools/export/collect';
+import { assert, should, test } from '@gs-testing/main';
+import { createImmutableList } from '@gs-tools/collect';
 import { BehaviorSubject, Observable, of as observableOf } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { StaticSourceNode } from './static-source-node';

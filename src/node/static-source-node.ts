@@ -1,4 +1,4 @@
-import { cache } from 'gs-tools/export/data';
+import { cache } from '@gs-tools/data';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, shareReplay } from 'rxjs/operators';
 import { StaticNode } from './static-node';

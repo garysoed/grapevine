@@ -1,3 +1,3 @@
-import { BaseDisposable } from 'gs-tools/export/dispose';
+import { BaseDisposable } from '@gs-tools/dispose';
 
 export const GLOBAL_CONTEXT = new BaseDisposable();

@@ -1,4 +1,4 @@
-import { ClassAnnotator, ParameterAnnotator, PropertyAnnotator } from 'gs-tools/export/data';
+import { ClassAnnotator, ParameterAnnotator, PropertyAnnotator } from '@gs-tools/data';
 import { VineOut, vineOutFactory } from '../annotation/vine-out';
 import { InstanceStreamId } from '../component/instance-stream-id';
 import { NodeId } from '../component/node-id';

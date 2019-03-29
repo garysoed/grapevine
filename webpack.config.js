@@ -1,5 +1,6 @@
 const glob = require('glob');
 const path = require('path');
+const { TsConfigPathsPlugin } = require('awesome-typescript-loader');
 
 module.exports = {
   entry: glob.sync("./src/**/*.test.ts"),
@@ -13,12 +14,14 @@ module.exports = {
 
   resolve: {
     alias: {
-      'gs-tools': path.resolve(__dirname, './node_modules/gs-tools'),
       'rxjs': path.resolve(__dirname, './node_modules/rxjs'),
       'tslib': path.resolve(__dirname, './node_modules/tslib'),
     },
     // Add '.ts' and '.tsx' as resolvable extensions.
-    extensions: [".ts", ".tsx", ".js", ".json"]
+    extensions: [".ts", ".tsx", ".js", ".json"],
+    plugins: [
+      new TsConfigPathsPlugin()
+    ]
   },
 
   module: {

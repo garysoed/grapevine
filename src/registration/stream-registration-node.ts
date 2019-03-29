@@ -1,4 +1,4 @@
-import { ImmutableList } from 'gs-tools/export/collect';
+import { ImmutableList } from '@gs-tools/collect';
 import { NodeId } from '../component/node-id';
 import { Provider } from '../component/provider';
 import { RegistrationNode } from './registration-node';

@@ -1,4 +1,4 @@
-import { ClassAnnotator, PropertyAnnotator } from 'gs-tools/export/data';
+import { ClassAnnotator, PropertyAnnotator } from '@gs-tools/data';
 import { InstanceStreamId } from '../component/instance-stream-id';
 import { NodeId } from '../component/node-id';
 

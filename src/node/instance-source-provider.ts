@@ -1,3 +1,3 @@
-import { BaseDisposable } from 'gs-tools/export/dispose';
+import { BaseDisposable } from '@gs-tools/dispose';
 
 export type InstanceSourceProvider<T> = (context: BaseDisposable) => T;

@@ -1,4 +1,4 @@
-import { $map, ImmutableList, $pipe } from 'gs-tools/export/collect';
+import { $map, ImmutableList, $pipe } from '@gs-tools/collect';
 import { Observable } from 'rxjs';
 import { Provider } from '../component/provider';
 import { normalizeObs } from './normalize-obs';

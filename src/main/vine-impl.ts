@@ -1,5 +1,5 @@
-import { $declareKeyed, $flat, $getKey, $head, $pick, $pipe, ImmutableMap } from 'gs-tools/export/collect';
-import { BaseDisposable } from 'gs-tools/export/dispose';
+import { $declareKeyed, $flat, $getKey, $head, $pick, $pipe, ImmutableMap } from '@gs-tools/collect';
+import { BaseDisposable } from '@gs-tools/dispose';
 import { Observable } from 'rxjs';
 import { InstanceSourceId } from '../component/instance-source-id';
 import { InstanceStreamId } from '../component/instance-stream-id';

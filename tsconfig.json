@@ -12,6 +12,11 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "outDir": "out",
+    "paths": {
+      "@moirai": ["node_modules/moirai/export/index.ts"],
+      "@gs-testing/*": ["node_modules/gs-testing/export/*"],
+      "@gs-tools/*": ["node_modules/gs-tools/export/*"],
+    },
     "pretty": true,
     "sourceMap": true,
     "strict": true,

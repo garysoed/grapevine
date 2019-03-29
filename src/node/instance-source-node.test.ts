@@ -1,6 +1,6 @@
-import { assert, should, test } from 'gs-testing/export/main';
-import { createSpy, fake, resetCalls, Spy } from 'gs-testing/export/spy';
-import { BaseDisposable } from 'gs-tools/export/dispose';
+import { assert, should, test } from '@gs-testing/main';
+import { createSpy, fake, resetCalls, Spy } from '@gs-testing/spy';
+import { BaseDisposable } from '@gs-tools/dispose';
 import { BehaviorSubject } from 'rxjs';
 import { InstanceSourceNode } from './instance-source-node';
 
