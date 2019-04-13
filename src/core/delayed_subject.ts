@@ -1,0 +1,44 @@
+import { filterNonNull, mapNonNull } from '@gs-tools/rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { shareReplay, switchMap, take } from 'rxjs/operators';
+import { Source } from './source';
+import { Vine } from './vine';
+
+export class DelayedSubject<T> extends Observable<T> {
+  private readonly subjectObs: Observable<Subject<T>|null>;
+  private readonly vineSubject: BehaviorSubject<Vine|null>;
+
+  constructor(source: Source<T>) {
+    const vineSubject = new BehaviorSubject<Vine|null>(null);
+    const subjectObs = vineSubject
+        .pipe(
+            take(1),
+            mapNonNull(vine => source.get(vine)),
+            shareReplay(1),
+        );
+
+    super(subscriber => subjectObs
+        .pipe(
+            filterNonNull(),
+            switchMap(subject => subject),
+        )
+        .subscribe(subscriber),
+    );
+
+    this.subjectObs = subjectObs;
+    this.vineSubject = vineSubject;
+  }
+
+  next(value?: T): void {
+    this.subjectObs
+        .pipe(
+            take(1),
+            filterNonNull(),
+        )
+        .subscribe(subject => subject.next(value));
+  }
+
+  setVine(vine: Vine): void {
+    this.vineSubject.next(vine);
+  }
+}

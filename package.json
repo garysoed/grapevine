@@ -18,7 +18,7 @@
     "karma-jasmine": "^1.1.2",
     "karma-sourcemap-loader": "^0.3.7",
     "source-map-loader": "^0.2.3",
-    "typescript": "^3.2.4",
+    "typescript": "^3.4.3",
     "uglifyjs-webpack-plugin": "^1.2.5",
     "webpack": "^4.8.3"
   },

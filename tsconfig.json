@@ -16,6 +16,7 @@
       "@moirai": ["node_modules/moirai/export/index.ts"],
       "@gs-testing/*": ["node_modules/gs-testing/export/*"],
       "@gs-tools/*": ["node_modules/gs-tools/export/*"],
+      "@gs-types": ["node_modules/gs-types/export/index.ts"],
     },
     "pretty": true,
     "sourceMap": true,
