@@ -6,26 +6,26 @@ import { injectVine } from './inject-vine';
 import { Vine } from './vine';
 
 const builder = new Builder();
-const globalSource = builder.source(() => new BehaviorSubject(1));
-const globalStream = builder.stream(
-    vine => globalSource
+const GLOBAL_SOURCE = builder.source(() => new BehaviorSubject(1));
+const GLOBAL_STREAM = builder.stream(
+    vine => GLOBAL_SOURCE
         .get(vine, globalThis)
         .pipe(map(value => value * 2)),
 );
 
 test('grapevine.core.functional', () => {
   class TestClass {
-    private static readonly instanceSource = builder.source(() => new BehaviorSubject(2));
-    private static readonly instanceStream = builder.stream(TestClass.prototype.stream);
+    private readonly instanceSource = builder.source(() => new BehaviorSubject(2));
+    private readonly instanceStream = builder.stream(this.stream);
 
     constructor(private readonly pad: number) { }
 
     getValue(vine: Vine): Observable<string> {
       return combineLatest(
-          TestClass.instanceSource.get(vine, this),
-          TestClass.instanceStream.get(vine, this),
-          globalSource.get(vine, globalThis),
-          globalStream.get(vine, globalThis),
+          this.instanceSource.get(vine, this),
+          this.instanceStream.get(vine, this),
+          GLOBAL_SOURCE.get(vine, globalThis),
+          GLOBAL_STREAM.get(vine, globalThis),
       )
       .pipe(
           map(([instanceSource, instanceStream, globalSource, globalStream]) => {
@@ -40,12 +40,12 @@ test('grapevine.core.functional', () => {
     }
 
     setSource(vine: Vine, value: number): void {
-      TestClass.instanceSource.get(vine, this).next(value);
+      this.instanceSource.get(vine, this).next(value);
     }
 
     // tslint:disable-next-line: prefer-function-over-method
     private stream(vine: Vine): Observable<number> {
-      return TestClass.instanceSource.get(vine, this).pipe(map(value => value * 3));
+      return this.instanceSource.get(vine, this).pipe(map(value => value * 3));
     }
   }
 
@@ -71,8 +71,8 @@ test('grapevine.core.functional', () => {
     test1.setSource(vine2, 4);
     test2.setSource(vine1, 5);
     test2.setSource(vine2, 6);
-    globalSource.get(vine1, globalThis).next(5);
-    globalSource.get(vine2, globalThis).next(6);
+    GLOBAL_SOURCE.get(vine1, globalThis).next(5);
+    GLOBAL_SOURCE.get(vine2, globalThis).next(6);
 
     await assert(subject11).to.emitSequence([
       `2 6 1 2`,
@@ -105,8 +105,8 @@ test('grapevine.core.functional', () => {
   });
 
   class TestInjectedClass {
-    readonly globalSource = globalSource.asSubject();
-    readonly globalStream = globalStream.asObservable();
+    readonly globalObs = GLOBAL_STREAM.asObservable();
+    readonly globalSbj = GLOBAL_SOURCE.asSubject();
     private readonly instanceSource = builder.source(() => new BehaviorSubject(2)).asSubject();
     private readonly instanceStream = builder.stream(this.stream).asObservable();
 
@@ -116,8 +116,8 @@ test('grapevine.core.functional', () => {
       return combineLatest(
           this.instanceSource,
           this.instanceStream,
-          this.globalSource,
-          this.globalStream,
+          this.globalSbj,
+          this.globalObs,
       )
       .pipe(
           map(([instanceSource, instanceStream, globalSource, globalStream]) => {
@@ -168,8 +168,8 @@ test('grapevine.core.functional', () => {
     test12.setValue(4);
     test21.setValue(5);
     test22.setValue(6);
-    test11.globalSource.next(7);
-    test12.globalSource.next(8);
+    test11.globalSbj.next(7);
+    test12.globalSbj.next(8);
 
     await assert(subject11).to.emitSequence([
       `2 6 1 2`,

@@ -1,5 +1,5 @@
-export { $vine } from '../src/main/vine-id';
-export { getOrRegisterApp } from '../src/main/vine';
-export { VineApp } from '../src/main/vine';
-export { VineBuilder } from '../src/main/vine-builder';
-export { VineImpl } from '../src/main/vine-impl';
+export { $vine } from '../src/old/main/vine-id';
+export { getOrRegisterApp } from '../src/old/main/vine';
+export { VineApp } from '../src/old/main/vine';
+export { VineBuilder } from '../src/old/main/vine-builder';
+export { VineImpl } from '../src/old/main/vine-impl';

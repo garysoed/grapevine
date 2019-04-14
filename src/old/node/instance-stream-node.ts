@@ -1,4 +1,4 @@
-import { $pipe, $map, ImmutableList } from '@gs-tools/collect';
+import { $map, $pipe, ImmutableList } from '@gs-tools/collect';
 import { BaseDisposable } from '@gs-tools/dispose';
 import { Observable } from 'rxjs';
 import { Provider } from '../component/provider';

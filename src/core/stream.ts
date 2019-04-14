@@ -3,10 +3,8 @@ import { DelayedObservable } from './delayed-observable';
 import { Provider } from './provider';
 import { Vine } from './vine';
 
-type GlobalThis = typeof globalThis;
-
 export class Stream<T, C> {
-  private readonly observables: Map<Vine, Map<C|GlobalThis, Observable<T>>> = new Map();
+  private readonly observables: Map<Vine, Observable<T>> = new Map();
 
   constructor(
       private readonly provider: Provider<T, C>,
@@ -17,12 +15,8 @@ export class Stream<T, C> {
   }
 
   get(vine: Vine, context: C): Observable<T> {
-    const contextMap = this.observables.get(vine) || new Map<C, Observable<T>>();
-    const obs = contextMap.get(context) ||
-        contextMap.get(globalThis) ||
-        this.provider.call(context, vine);
-    contextMap.set(context, obs);
-    this.observables.set(vine, contextMap);
+    const obs = this.observables.get(vine) || this.provider.call(context, vine);
+    this.observables.set(vine, obs);
 
     return obs;
   }
