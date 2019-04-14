@@ -1,5 +1,5 @@
 import { Observable, ReplaySubject } from 'rxjs';
-import { switchMap, take } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
 import { VineWithContext } from '../types/vine-with-context';
 import { Stream } from './stream';
 import { Vine } from './vine';

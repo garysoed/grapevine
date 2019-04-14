@@ -1,3 +1,3 @@
 export class Vine {
-  constructor(private readonly appName: string) { }
+  constructor(readonly appName: string) { }
 }

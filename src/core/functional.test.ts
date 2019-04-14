@@ -1,5 +1,5 @@
 import { assert, should, test } from '@gs-testing/main';
-import { BehaviorSubject, combineLatest, Observable, ReplaySubject, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, ReplaySubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Builder } from './builder';
 import { injectVine } from './inject-vine';
