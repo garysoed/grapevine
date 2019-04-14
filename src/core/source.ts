@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs';
+import { Factory } from '../types/factory';
 import { DelayedSubject } from './delayed-subject';
-import { Factory } from './factory';
 import { Vine } from './vine';
 
 export class Source<T, C> {

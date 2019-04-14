@@ -1,8 +1,8 @@
 import { Observable, ReplaySubject } from 'rxjs';
 import { switchMap, take } from 'rxjs/operators';
+import { VineWithContext } from '../types/vine-with-context';
 import { Stream } from './stream';
 import { Vine } from './vine';
-import { VineWithContext } from './vine-with-context';
 
 export class DelayedObservable<T, C> extends Observable<T> {
   private readonly vineSubject: ReplaySubject<VineWithContext<C>>;

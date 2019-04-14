@@ -159,7 +159,6 @@ test('main.VineBuilder', () => {
 
       assert(() => {
         _v.builder.run([]);
-        console.log('done');
       }).to.throwErrorWithMessage(/cyclic dependency/i);
     });
   });

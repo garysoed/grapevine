@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
+import { Provider } from '../types/provider';
 import { DelayedObservable } from './delayed-observable';
-import { Provider } from './provider';
 import { Vine } from './vine';
 
 export class Stream<T, C> {

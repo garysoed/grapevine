@@ -1,4 +1,4 @@
-import { Vine } from './vine';
+import { Vine } from '../core/vine';
 
 export interface VineWithContext<C> {
   context: C;

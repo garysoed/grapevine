@@ -1,5 +1,5 @@
-import { Factory } from './factory';
-import { Provider } from './provider';
+import { Factory } from '../types/factory';
+import { Provider } from '../types/provider';
 import { Source } from './source';
 import { Stream } from './stream';
 import { Vine } from './vine';
