@@ -1,7 +1,3 @@
-import { Observable, ReplaySubject, Subject } from 'rxjs';
-
-import { DelayedObservable } from './delayed_observable';
-import { DelayedSubject } from './delayed_subject';
 import { Factory } from './factory';
 import { Provider } from './provider';
 import { Source } from './source';
@@ -9,31 +5,24 @@ import { Stream } from './stream';
 import { Vine } from './vine';
 
 export class Builder {
+  private readonly sourceCache = new Map<Factory<any, any>, Source<any, any>>();
+  private readonly streamCache = new Map<Provider<any, any>, Stream<any, any>>();
+
   build(appName: string): Vine {
     return new Vine(appName);
   }
 
-  /**
-   * Creates an observable that waits for vine to be injected before emitting.
-   */
-  createObservable<T>(stream: Stream<T, any>): Observable<T> {
-    return new DelayedObservable(stream);
+  source<T, C>(factory: Factory<T, C>): Source<T, C> {
+    const source = this.sourceCache.get(factory) || new Source(factory);
+    this.sourceCache.set(factory, source);
+
+    return source;
   }
 
-  createSource<T>(factory: Factory<T>): Source<T> {
-    return new Source(factory);
-  }
+  stream<T, C>(provider: Provider<T, C>): Stream <T, C> {
+    const stream = this.streamCache.get(provider) || new Stream(provider);
+    this.streamCache.set(provider, stream);
 
-  createStream<T>(provider: Provider<T, typeof globalThis>): Stream<T, typeof globalThis>;
-  createStream<T, C>(provider: Provider<T, C>, context: C): Stream<T, C>;
-  createStream<T>(provider: Provider<T, any>, context: any = globalThis): Stream<T, any> {
-    return new Stream(provider, context);
-  }
-
-  /**
-   * Creates a subject that waits for vine to be injected before emitting.
-   */
-  createSubject<T>(source: Source<T>): DelayedSubject<T> {
-    return new DelayedSubject(source);
+    return stream;
   }
 }

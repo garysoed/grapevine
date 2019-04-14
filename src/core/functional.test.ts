@@ -2,34 +2,30 @@ import { assert, should, test } from '@gs-testing/main';
 import { BehaviorSubject, combineLatest, Observable, ReplaySubject, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Builder } from './builder';
-import { DelayedSubject } from './delayed_subject';
-import { newInstance } from './new_instance';
-import { Source } from './source';
-import { Stream } from './stream';
+import { injectVine } from './inject-vine';
 import { Vine } from './vine';
 
 const builder = new Builder();
-const globalSource = builder.createSource(() => new BehaviorSubject(1));
-const globalStream = builder.createStream(
+const globalSource = builder.source(() => new BehaviorSubject(1));
+const globalStream = builder.stream(
     vine => globalSource
-        .get(vine)
+        .get(vine, globalThis)
         .pipe(map(value => value * 2)),
 );
 
 test('grapevine.core.functional', () => {
   class TestClass {
-    private readonly instanceSource: Source<number> =
-        builder.createSource(() => new BehaviorSubject(2));
-    private readonly instanceStream: Stream<number, this> = builder.createStream(this.stream, this);
+    private static readonly instanceSource = builder.source(() => new BehaviorSubject(2));
+    private static readonly instanceStream = builder.stream(TestClass.prototype.stream);
 
     constructor(private readonly pad: number) { }
 
     getValue(vine: Vine): Observable<string> {
       return combineLatest(
-          this.instanceSource.get(vine),
-          this.instanceStream.get(vine),
-          globalSource.get(vine),
-          globalStream.get(vine),
+          TestClass.instanceSource.get(vine, this),
+          TestClass.instanceStream.get(vine, this),
+          globalSource.get(vine, globalThis),
+          globalStream.get(vine, globalThis),
       )
       .pipe(
           map(([instanceSource, instanceStream, globalSource, globalStream]) => {
@@ -44,11 +40,12 @@ test('grapevine.core.functional', () => {
     }
 
     setSource(vine: Vine, value: number): void {
-      this.instanceSource.get(vine).next(value);
+      TestClass.instanceSource.get(vine, this).next(value);
     }
 
+    // tslint:disable-next-line: prefer-function-over-method
     private stream(vine: Vine): Observable<number> {
-      return this.instanceSource.get(vine).pipe(map(value => value * 3));
+      return TestClass.instanceSource.get(vine, this).pipe(map(value => value * 3));
     }
   }
 
@@ -74,8 +71,8 @@ test('grapevine.core.functional', () => {
     test1.setSource(vine2, 4);
     test2.setSource(vine1, 5);
     test2.setSource(vine2, 6);
-    globalSource.get(vine1).next(5);
-    globalSource.get(vine2).next(6);
+    globalSource.get(vine1, globalThis).next(5);
+    globalSource.get(vine2, globalThis).next(6);
 
     await assert(subject11).to.emitSequence([
       `2 6 1 2`,
@@ -108,12 +105,10 @@ test('grapevine.core.functional', () => {
   });
 
   class TestInjectedClass {
-    readonly globalSource: DelayedSubject<number> = builder.createSubject(globalSource);
-    readonly globalStream: Observable<number> = builder.createObservable(globalStream);
-    private readonly instanceSource: DelayedSubject<number> =
-        builder.createSubject(builder.createSource(() => new BehaviorSubject(2)));
-    private readonly instanceStream: Observable<number> =
-        builder.createObservable(builder.createStream(this.stream, this));
+    readonly globalSource = globalSource.asSubject();
+    readonly globalStream = globalStream.asObservable();
+    private readonly instanceSource = builder.source(() => new BehaviorSubject(2)).asSubject();
+    private readonly instanceStream = builder.stream(this.stream).asObservable();
 
     constructor(private readonly pad: number) { }
 
@@ -148,10 +143,14 @@ test('grapevine.core.functional', () => {
   should(`provide the correct values for injected class`, async () => {
     const vine1 = builder.build('test1');
     const vine2 = builder.build('test2');
-    const test11 = newInstance(vine1, TestInjectedClass, 1);
-    const test12 = newInstance(vine2, TestInjectedClass, 1);
-    const test21 = newInstance(vine1, TestInjectedClass, 2);
-    const test22 = newInstance(vine2, TestInjectedClass, 2);
+    const test11 = new TestInjectedClass(1);
+    injectVine(vine1, test11);
+    const test12 = new TestInjectedClass(1);
+    injectVine(vine2, test12);
+    const test21 = new TestInjectedClass(2);
+    injectVine(vine1, test21);
+    const test22 = new TestInjectedClass(2);
+    injectVine(vine2, test22);
 
     const subject11 = new ReplaySubject(6);
     test11.getValue().subscribe(subject11);

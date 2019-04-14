@@ -1,16 +1,27 @@
 import { Subject } from 'rxjs';
+import { DelayedSubject } from './delayed-subject';
 import { Factory } from './factory';
 import { Vine } from './vine';
 
-export class Source<T> {
-  private readonly subjects: Map<Vine, Subject<T>> = new Map();
+type GlobalThis = typeof globalThis;
 
-  constructor(private readonly factory: Factory<T>) { }
+export class Source<T, C> {
+  private readonly subjects: Map<Vine, Map<C|GlobalThis, Subject<T>>> = new Map();
 
-  get(vine: Vine): Subject<T> {
-    const subject = this.subjects.get(vine) || this.factory();
-    this.subjects.set(vine, subject);
+  constructor(private readonly factory: Factory<T, C>) { }
 
-    return subject;
+  asSubject(): DelayedSubject<T, C> {
+    return new DelayedSubject(this);
+  }
+
+  get(vine: Vine, context: C): Subject<T> {
+    const contextMap = this.subjects.get(vine) || new Map<C, Subject<T>>();
+    const sbj = contextMap.get(context) ||
+        contextMap.get(globalThis) ||
+        this.factory.call(context, vine);
+    contextMap.set(context, sbj);
+    this.subjects.set(vine, contextMap);
+
+    return sbj;
   }
 }
