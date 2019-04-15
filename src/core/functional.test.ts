@@ -6,26 +6,27 @@ import { injectVine } from './inject-vine';
 import { Vine } from './vine';
 
 const builder = new Builder();
-const GLOBAL_SOURCE = builder.source(() => new BehaviorSubject(1));
+const GLOBAL_SOURCE = builder.source(() => new BehaviorSubject(1), globalThis);
 const GLOBAL_STREAM = builder.stream(
     vine => GLOBAL_SOURCE
-        .get(vine, globalThis)
+        .get(vine)
         .pipe(map(value => value * 2)),
+    globalThis,
 );
 
 test('grapevine.core.functional', () => {
   class TestClass {
-    private readonly instanceSource = builder.source(() => new BehaviorSubject(2));
-    private readonly instanceStream = builder.stream(this.stream);
+    private readonly instanceSource = builder.source(() => new BehaviorSubject(2), this);
+    private readonly instanceStream = builder.stream(this.stream, this);
 
     constructor(private readonly pad: number) { }
 
     getValue(vine: Vine): Observable<string> {
       return combineLatest(
-          this.instanceSource.get(vine, this),
-          this.instanceStream.get(vine, this),
-          GLOBAL_SOURCE.get(vine, globalThis),
-          GLOBAL_STREAM.get(vine, globalThis),
+          this.instanceSource.get(vine),
+          this.instanceStream.get(vine),
+          GLOBAL_SOURCE.get(vine),
+          GLOBAL_STREAM.get(vine),
       )
       .pipe(
           map(([instanceSource, instanceStream, globalSource, globalStream]) => {
@@ -40,12 +41,12 @@ test('grapevine.core.functional', () => {
     }
 
     setSource(vine: Vine, value: number): void {
-      this.instanceSource.get(vine, this).next(value);
+      this.instanceSource.get(vine).next(value);
     }
 
     // tslint:disable-next-line: prefer-function-over-method
     private stream(vine: Vine): Observable<number> {
-      return this.instanceSource.get(vine, this).pipe(map(value => value * 3));
+      return this.instanceSource.get(vine).pipe(map(value => value * 3));
     }
   }
 
@@ -71,8 +72,8 @@ test('grapevine.core.functional', () => {
     test1.setSource(vine2, 4);
     test2.setSource(vine1, 5);
     test2.setSource(vine2, 6);
-    GLOBAL_SOURCE.get(vine1, globalThis).next(5);
-    GLOBAL_SOURCE.get(vine2, globalThis).next(6);
+    GLOBAL_SOURCE.get(vine1).next(5);
+    GLOBAL_SOURCE.get(vine2).next(6);
 
     await assert(subject11).to.emitSequence([
       `2 6 1 2`,
@@ -107,8 +108,12 @@ test('grapevine.core.functional', () => {
   class TestInjectedClass {
     readonly globalObs = GLOBAL_STREAM.asObservable();
     readonly globalSbj = GLOBAL_SOURCE.asSubject();
-    private readonly instanceSource = builder.source(() => new BehaviorSubject(2)).asSubject();
-    private readonly instanceStream = builder.stream(this.stream).asObservable();
+    private readonly instanceSource = builder
+        .source(() => new BehaviorSubject(2), this)
+        .asSubject();
+    private readonly instanceStream = builder
+        .stream(this.stream, this)
+        .asObservable();
 
     constructor(private readonly pad: number) { }
 

@@ -9,11 +9,11 @@ export class Builder {
     return new Vine(appName);
   }
 
-  source<T, C>(factory: Factory<T, C>): Source<T, C> {
-    return new Source(factory);
+  source<T, C>(factory: Factory<T, C>, context: C): Source<T, C> {
+    return new Source(factory, context);
   }
 
-  stream<T, C>(provider: Provider<T, C>): Stream <T, C> {
-    return new Stream(provider);
+  stream<T, C>(provider: Provider<T, C>, context: C): Stream <T, C> {
+    return new Stream(provider, context);
   }
 }

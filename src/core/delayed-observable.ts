@@ -1,18 +1,17 @@
 import { Observable, ReplaySubject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { VineWithContext } from '../types/vine-with-context';
 import { Stream } from './stream';
 import { Vine } from './vine';
 
-export class DelayedObservable<T, C> extends Observable<T> {
-  private readonly vineSubject: ReplaySubject<VineWithContext<C>>;
+export class DelayedObservable<T> extends Observable<T> {
+  private readonly vineSubject: ReplaySubject<Vine>;
 
-  constructor(stream: Stream<T, C>) {
-    const vineSubject = new ReplaySubject<VineWithContext<C>>(1);
+  constructor(stream: Stream<T, any>) {
+    const vineSubject = new ReplaySubject<Vine>(1);
 
     super(subscriber => vineSubject
         .pipe(
-            switchMap(({context, vine}) => stream.get(vine, context)),
+            switchMap(vine => stream.get(vine)),
         )
         .subscribe(subscriber),
     );
@@ -20,7 +19,7 @@ export class DelayedObservable<T, C> extends Observable<T> {
     this.vineSubject = vineSubject;
   }
 
-  setContext(vine: Vine, context: C): void {
-    this.vineSubject.next({vine, context});
+  setContext(vine: Vine): void {
+    this.vineSubject.next(vine);
   }
 }

@@ -7,11 +7,11 @@ export function injectVine<T>(vine: Vine, instance: T): T {
   for (const key in instance) {
     const value = instance[key];
     if (value instanceof DelayedObservable) {
-      value.setContext(vine, instance);
+      value.setContext(vine);
     }
 
     if (value instanceof DelayedSubject) {
-      value.setContext(vine, instance);
+      value.setContext(vine);
     }
   }
 

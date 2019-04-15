@@ -7,7 +7,7 @@ test('grapevine/core/delayed-observable', () => {
   should(`not emit until vine is given`, async () => {
     const value = 123;
     const builder = new Builder();
-    const stream = builder.stream(() => observableOf(value));
+    const stream = builder.stream(() => observableOf(value), globalThis);
 
     const obs = new DelayedObservable(stream);
     const subject = new ReplaySubject(1);
@@ -16,7 +16,7 @@ test('grapevine/core/delayed-observable', () => {
     await assert(subject).toNot.emit();
 
     const vine = builder.build('test');
-    obs.setContext(vine, globalThis);
+    obs.setContext(vine);
 
     await assert(subject).to.emitWith(value);
   });

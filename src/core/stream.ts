@@ -8,14 +8,15 @@ export class Stream<T, C> {
 
   constructor(
       private readonly provider: Provider<T, C>,
+      private readonly context: C,
   ) { }
 
-  asObservable(): DelayedObservable<T, C> {
+  asObservable(): DelayedObservable<T> {
     return new DelayedObservable(this);
   }
 
-  get(vine: Vine, context: C): Observable<T> {
-    const obs = this.observables.get(vine) || this.provider.call(context, vine);
+  get(vine: Vine): Observable<T> {
+    const obs = this.observables.get(vine) || this.provider.call(this.context, vine);
     this.observables.set(vine, obs);
 
     return obs;

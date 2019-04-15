@@ -8,9 +8,9 @@ test('grapevine/core/inject-vine', () => {
     const builder = new Builder();
 
     class TestClass {
-      readonly observable = builder.stream(() => observableOf(3)).asObservable();
+      readonly observable = builder.stream(() => observableOf(3), globalThis).asObservable();
       readonly skipped = 5;
-      readonly subject = builder.source(() => new BehaviorSubject(1)).asSubject();
+      readonly subject = builder.source(() => new BehaviorSubject(1), globalThis).asSubject();
     }
 
     const instance = new TestClass();

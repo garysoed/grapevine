@@ -5,11 +5,11 @@ import { DelayedSubject } from './delayed-subject';
 
 test('grapevine/core/delayed-subject', () => {
   let builder: Builder;
-  let subject: DelayedSubject<number, {}>;
+  let subject: DelayedSubject<number>;
 
   setup(() => {
     builder = new Builder();
-    const source = builder.source(() => new BehaviorSubject(1));
+    const source = builder.source(() => new BehaviorSubject(1), globalThis);
     subject = source.asSubject();
   });
 
@@ -20,7 +20,7 @@ test('grapevine/core/delayed-subject', () => {
     await assert(replaySubject).toNot.emit();
 
     const vine = builder.build('test');
-    subject.setContext(vine, globalThis);
+    subject.setContext(vine);
 
     const value = 123;
     subject.next(value);

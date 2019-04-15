@@ -4,20 +4,16 @@ import { shareReplay, switchMap, take } from 'rxjs/operators';
 import { Source } from './source';
 import { Vine } from './vine';
 
-interface VineWithContext<C> {
-  context: C;
-  vine: Vine;
-}
 
-export class DelayedSubject<T, C> extends Observable<T> {
+export class DelayedSubject<T> extends Observable<T> {
   private readonly subjectObs: Observable<Subject<T>|null>;
-  private readonly vineSubject: BehaviorSubject<VineWithContext<C>|null>;
+  private readonly vineSubject: BehaviorSubject<Vine|null>;
 
-  constructor(source: Source<T, C>) {
-    const vineSubject = new BehaviorSubject<VineWithContext<C>|null>(null);
+  constructor(source: Source<T, any>) {
+    const vineSubject = new BehaviorSubject<Vine|null>(null);
     const subjectObs = vineSubject
         .pipe(
-            mapNonNull(({context, vine}) => source.get(vine, context)),
+            mapNonNull(vine => source.get(vine)),
             shareReplay(1),
         );
 
@@ -42,7 +38,7 @@ export class DelayedSubject<T, C> extends Observable<T> {
         .subscribe(subject => subject.next(value));
   }
 
-  setContext(vine: Vine, context: C): void {
-    this.vineSubject.next({vine, context});
+  setContext(vine: Vine): void {
+    this.vineSubject.next(vine);
   }
 }
