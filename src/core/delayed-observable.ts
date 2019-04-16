@@ -1,9 +1,10 @@
 import { Observable, ReplaySubject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { __inject, Injectable } from '../types/injectable';
 import { Stream } from './stream';
 import { Vine } from './vine';
 
-export class DelayedObservable<T> extends Observable<T> {
+export class DelayedObservable<T> extends Observable<T> implements Injectable {
   private readonly vineSubject: ReplaySubject<Vine>;
 
   constructor(stream: Stream<T, any>) {
@@ -19,7 +20,7 @@ export class DelayedObservable<T> extends Observable<T> {
     this.vineSubject = vineSubject;
   }
 
-  setContext(vine: Vine): void {
+  [__inject](vine: Vine): void {
     this.vineSubject.next(vine);
   }
 }

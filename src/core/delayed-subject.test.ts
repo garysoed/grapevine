@@ -1,5 +1,6 @@
 import { assert, setup, should, test } from '@gs-testing';
 import { BehaviorSubject, ReplaySubject } from 'rxjs';
+import { __inject } from '../types/injectable';
 import { Builder } from './builder';
 import { DelayedSubject } from './delayed-subject';
 
@@ -20,7 +21,7 @@ test('grapevine/core/delayed-subject', () => {
     await assert(replaySubject).toNot.emit();
 
     const vine = builder.build('test');
-    subject.setContext(vine);
+    subject[__inject](vine);
 
     const value = 123;
     subject.next(value);

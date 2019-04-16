@@ -1,17 +1,12 @@
-import { DelayedObservable } from './delayed-observable';
-import { DelayedSubject } from './delayed-subject';
+import { __inject, isInjectable } from '../types/injectable';
 import { Vine } from './vine';
 
 export function injectVine<T>(vine: Vine, instance: T): T {
   // tslint:disable-next-line: forin
   for (const key in instance) {
     const value = instance[key];
-    if (value instanceof DelayedObservable) {
-      value.setContext(vine);
-    }
-
-    if (value instanceof DelayedSubject) {
-      value.setContext(vine);
+    if (isInjectable(value)) {
+      value[__inject](vine);
     }
   }
 

@@ -1,11 +1,11 @@
 import { filterNonNull, mapNonNull } from '@gs-tools/rxjs';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { shareReplay, switchMap, take } from 'rxjs/operators';
+import { __inject, Injectable } from '../types/injectable';
 import { Source } from './source';
 import { Vine } from './vine';
 
-
-export class DelayedSubject<T> extends Observable<T> {
+export class DelayedSubject<T> extends Observable<T> implements Injectable {
   private readonly subjectObs: Observable<Subject<T>|null>;
   private readonly vineSubject: BehaviorSubject<Vine|null>;
 
@@ -29,6 +29,10 @@ export class DelayedSubject<T> extends Observable<T> {
     this.vineSubject = vineSubject;
   }
 
+  [__inject](vine: Vine): void {
+    this.vineSubject.next(vine);
+  }
+
   next(value?: T): void {
     this.subjectObs
         .pipe(
@@ -36,9 +40,5 @@ export class DelayedSubject<T> extends Observable<T> {
             filterNonNull(),
         )
         .subscribe(subject => subject.next(value));
-  }
-
-  setContext(vine: Vine): void {
-    this.vineSubject.next(vine);
   }
 }
