@@ -3,7 +3,7 @@ import { BehaviorSubject, of as observableOf } from 'rxjs';
 import { Builder } from './builder';
 import { injectVine } from './inject-vine';
 
-test('grapevine/core/inject-vine', () => {
+test('@grapevine/core/inject-vine', () => {
   should(`inject the delayed observables and subjects correctly`, async () => {
     const builder = new Builder();
 

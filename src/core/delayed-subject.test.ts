@@ -4,7 +4,7 @@ import { __inject } from '../types/injectable';
 import { Builder } from './builder';
 import { DelayedSubject } from './delayed-subject';
 
-test('grapevine/core/delayed-subject', () => {
+test('@grapevine/core/delayed-subject', () => {
   let builder: Builder;
   let subject: DelayedSubject<number>;
 

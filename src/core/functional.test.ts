@@ -14,7 +14,7 @@ const GLOBAL_STREAM = builder.stream(
     globalThis,
 );
 
-test('grapevine.core.functional', () => {
+test('@grapevine/core/functional', () => {
   class TestClass {
     private readonly instanceSource = builder.source(() => new BehaviorSubject(2), this);
     private readonly instanceStream = builder.stream(this.stream, this);

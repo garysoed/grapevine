@@ -4,7 +4,7 @@ import { __inject } from '../types/injectable';
 import { Builder } from './builder';
 import { DelayedObservable } from './delayed-observable';
 
-test('grapevine/core/delayed-observable', () => {
+test('@grapevine/core/delayed-observable', () => {
   should(`not emit until vine is given`, async () => {
     const value = 123;
     const builder = new Builder();
