@@ -2,5 +2,5 @@ grapevine
   v 1.1
     ✔ #resolveParams, allows caller to get the parameters of a property. @done(18-12-23 15:31)
 
-  Next steps:
-    ☐ Clean up Annotations code.
+  v 2.0
+    ✔ New and simpler interface that depends on Observables.
