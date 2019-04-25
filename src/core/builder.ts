@@ -4,9 +4,22 @@ import { Source } from './source';
 import { Stream } from './stream';
 import { Vine } from './vine';
 
+type InitFn = (vine: Vine) => unknown;
+
 export class Builder {
+  private readonly onRunFns: InitFn[] = [];
+
   build(appName: string): Vine {
-    return new Vine(appName);
+    const vine = new Vine(appName);
+    for (const fn of this.onRunFns) {
+      fn(vine);
+    }
+
+    return vine;
+  }
+
+  onRun(initFn: InitFn): void {
+    this.onRunFns.push(initFn);
   }
 
   source<T, C>(factory: Factory<T, C>, context: C): Source<T, C> {
