@@ -18,6 +18,8 @@
       "@gs-testing": ["node_modules/gs-testing/export/index.ts"],
       "@gs-tools/*": ["node_modules/gs-tools/export/*"],
       "@gs-types": ["node_modules/gs-types/export/index.ts"],
+      "@rxjs": ["node_modules/rxjs"],
+      "@rxjs/operators": ["node_modules/rxjs/operators"],
     },
     "pretty": true,
     "sourceMap": true,
@@ -27,7 +29,5 @@
   },
   "include": [
     "src/**/*.ts",
-    "node_modules/gs-testing/export/*",
-    "node_modules/gs-types/export/*"
   ]
 }

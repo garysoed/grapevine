@@ -1,5 +1,5 @@
 import { assert, should, test } from '@gs-testing';
-import { of as observableOf, ReplaySubject } from 'rxjs';
+import { of as observableOf, ReplaySubject } from '@rxjs';
 import { __inject } from '../types/injectable';
 import { Builder } from './builder';
 import { DelayedObservable } from './delayed-observable';

@@ -1,6 +1,6 @@
 import { filterNonNull, mapNonNull } from '@gs-tools/rxjs';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { shareReplay, switchMap, take } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject } from '@rxjs';
+import { shareReplay, switchMap, take } from '@rxjs/operators';
 import { __inject, Injectable } from '../types/injectable';
 import { Source } from './source';
 import { Vine } from './vine';

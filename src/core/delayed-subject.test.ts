@@ -1,5 +1,5 @@
 import { assert, setup, should, test } from '@gs-testing';
-import { BehaviorSubject, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, ReplaySubject } from '@rxjs';
 import { __inject } from '../types/injectable';
 import { Builder } from './builder';
 import { DelayedSubject } from './delayed-subject';

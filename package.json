@@ -7,7 +7,7 @@
     "gs-testing": "^1.0.0",
     "gs-tools": "^1.0.0",
     "gs-types": "^1.0.0",
-    "rxjs": "^6.3.3"
+    "rxjs": "^6.5.1"
   },
   "devDependencies": {
     "@types/jasmine": "^2.8.7",

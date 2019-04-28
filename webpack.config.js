@@ -14,13 +14,12 @@ module.exports = {
 
   resolve: {
     alias: {
-      'rxjs': path.resolve(__dirname, './node_modules/rxjs'),
       'tslib': path.resolve(__dirname, './node_modules/tslib'),
     },
     // Add '.ts' and '.tsx' as resolvable extensions.
     extensions: [".ts", ".tsx", ".js", ".json"],
     plugins: [
-      new TsConfigPathsPlugin()
+      new TsConfigPathsPlugin({configFile: 'tsconfig.json', baseUrl: __dirname})
     ]
   },
 
