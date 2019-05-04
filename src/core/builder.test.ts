@@ -1,5 +1,4 @@
-import { assert, setup, should, test } from '@gs-testing';
-import { createSpy } from '@gs-testing/spy';
+import { assert, createSpy, setup, should, test } from '@gs-testing';
 import { Builder } from './builder';
 
 test('@grapevine/core/builder', () => {

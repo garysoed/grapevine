@@ -1,4 +1,4 @@
-import { assert, should, test } from '@gs-testing/main';
+import { assert, should, test } from '@gs-testing';
 import { BehaviorSubject, combineLatest, Observable, ReplaySubject } from '@rxjs';
 import { map } from '@rxjs/operators';
 import { Builder } from './builder';
@@ -18,16 +18,17 @@ test('@grapevine/core/functional', () => {
   class TestClass {
     private readonly instanceSource = builder.source(() => new BehaviorSubject(2), this);
     private readonly instanceStream = builder.stream(this.stream, this);
+    private readonly vineStream = builder.vine();
 
     constructor(private readonly pad: number) { }
 
     getValue(vine: Vine): Observable<string> {
-      return combineLatest(
-          this.instanceSource.get(vine),
-          this.instanceStream.get(vine),
-          GLOBAL_SOURCE.get(vine),
-          GLOBAL_STREAM.get(vine),
-      )
+      return combineLatest([
+        this.instanceSource.get(vine),
+        this.instanceStream.get(vine),
+        GLOBAL_SOURCE.get(vine),
+        GLOBAL_STREAM.get(vine),
+      ])
       .pipe(
           map(([instanceSource, instanceStream, globalSource, globalStream]) => {
             return [
@@ -38,6 +39,10 @@ test('@grapevine/core/functional', () => {
             ].join(' ');
           }),
       );
+    }
+
+    getVine(vine: Vine): Observable<Vine> {
+      return this.vineStream.get(vine);
     }
 
     setSource(vine: Vine, value: number): void {
@@ -103,6 +108,10 @@ test('@grapevine/core/functional', () => {
       `12 18 12 2`,
       `12 18 12 12`,
     ]);
+    await assert(test1.getVine(vine1)).to.emitWith(vine1);
+    await assert(test1.getVine(vine2)).to.emitWith(vine2);
+    await assert(test2.getVine(vine1)).to.emitWith(vine1);
+    await assert(test2.getVine(vine2)).to.emitWith(vine2);
   });
 
   class TestInjectedClass {
@@ -114,16 +123,17 @@ test('@grapevine/core/functional', () => {
     private readonly instanceStream = builder
         .stream(this.stream, this)
         .asObservable();
+    private readonly vineObs = builder.vine().asObservable();
 
     constructor(private readonly pad: number) { }
 
     getValue(): Observable<string> {
-      return combineLatest(
-          this.instanceSource,
-          this.instanceStream,
-          this.globalSbj,
-          this.globalObs,
-      )
+      return combineLatest([
+        this.instanceSource,
+        this.instanceStream,
+        this.globalSbj,
+        this.globalObs,
+      ])
       .pipe(
           map(([instanceSource, instanceStream, globalSource, globalStream]) => {
             return [
@@ -134,6 +144,10 @@ test('@grapevine/core/functional', () => {
             ].join(' ');
           }),
       );
+    }
+
+    getVine(): Observable<Vine> {
+      return this.vineObs;
     }
 
     setValue(value: number): void {
@@ -204,5 +218,10 @@ test('@grapevine/core/functional', () => {
       `12 18 16 2`,
       `12 18 16 16`,
     ]);
+
+    await assert(test11.getVine()).to.emitWith(vine1);
+    await assert(test12.getVine()).to.emitWith(vine2);
+    await assert(test21.getVine()).to.emitWith(vine1);
+    await assert(test22.getVine()).to.emitWith(vine2);
   });
 });

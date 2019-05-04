@@ -1,3 +1,5 @@
+import { of as observableOf } from '@rxjs';
+import { shareReplay } from '@rxjs/operators';
 import { Factory } from '../types/factory';
 import { Provider } from '../types/provider';
 import { Source } from './source';
@@ -28,5 +30,9 @@ export class Builder {
 
   stream<T, C>(provider: Provider<T, C>, context: C): Stream <T, C> {
     return new Stream(provider, context);
+  }
+
+  vine(): Stream<Vine, typeof globalThis> {
+    return new Stream(vine => observableOf(vine).pipe(shareReplay(1)), globalThis);
   }
 }
