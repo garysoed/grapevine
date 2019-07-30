@@ -1,7 +1,9 @@
 import { of as observableOf } from '@rxjs';
 import { shareReplay } from '@rxjs/operators';
+
 import { Factory } from '../types/factory';
 import { Provider } from '../types/provider';
+
 import { Source } from './source';
 import { Stream } from './stream';
 import { Vine } from './vine';
