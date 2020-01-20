@@ -1,4 +1,5 @@
 import { __inject, isInjectable } from '../types/injectable';
+
 import { Vine } from './vine';
 
 export function injectVine<T>(vine: Vine, instance: T): T {

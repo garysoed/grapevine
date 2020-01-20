@@ -1,6 +1,7 @@
 import { assert, should, test } from '@gs-testing';
 import { BehaviorSubject, combineLatest, Observable, ReplaySubject } from '@rxjs';
 import { map } from '@rxjs/operators';
+
 import { Builder } from './builder';
 import { injectVine } from './inject-vine';
 import { Vine } from './vine';
@@ -80,38 +81,38 @@ test('@grapevine/core/functional', () => {
     GLOBAL_SOURCE.get(vine1).next(5);
     GLOBAL_SOURCE.get(vine2).next(6);
 
-    await assert(subject11).to.emitSequence([
+    assert(subject11).to.emitSequence([
       `2 6 1 2`,
       `3 6 1 2`,
       `3 9 1 2`,
       `3 9 5 2`,
       `3 9 5 10`,
     ]);
-    await assert(subject12).to.emitSequence([
+    assert(subject12).to.emitSequence([
       `2 6 1 2`,
       `4 6 1 2`,
       `4 12 1 2`,
       `4 12 6 2`,
       `4 12 6 12`,
     ]);
-    await assert(subject21).to.emitSequence([
+    assert(subject21).to.emitSequence([
       `4 6 2 2`,
       `10 6 2 2`,
       `10 15 2 2`,
       `10 15 10 2`,
       `10 15 10 10`,
     ]);
-    await assert(subject22).to.emitSequence([
+    assert(subject22).to.emitSequence([
       `4 6 2 2`,
       `12 6 2 2`,
       `12 18 2 2`,
       `12 18 12 2`,
       `12 18 12 12`,
     ]);
-    await assert(test1.getVine(vine1)).to.emitWith(vine1);
-    await assert(test1.getVine(vine2)).to.emitWith(vine2);
-    await assert(test2.getVine(vine1)).to.emitWith(vine1);
-    await assert(test2.getVine(vine2)).to.emitWith(vine2);
+    assert(test1.getVine(vine1)).to.emitWith(vine1);
+    assert(test1.getVine(vine2)).to.emitWith(vine2);
+    assert(test2.getVine(vine1)).to.emitWith(vine1);
+    assert(test2.getVine(vine2)).to.emitWith(vine2);
   });
 
   class TestInjectedClass {
@@ -190,28 +191,28 @@ test('@grapevine/core/functional', () => {
     test11.globalSbj.next(7);
     test12.globalSbj.next(8);
 
-    await assert(subject11).to.emitSequence([
+    assert(subject11).to.emitSequence([
       `2 6 1 2`,
       `3 6 1 2`,
       `3 9 1 2`,
       `3 9 7 2`,
       `3 9 7 14`,
     ]);
-    await assert(subject12).to.emitSequence([
+    assert(subject12).to.emitSequence([
       `2 6 1 2`,
       `4 6 1 2`,
       `4 12 1 2`,
       `4 12 8 2`,
       `4 12 8 16`,
     ]);
-    await assert(subject21).to.emitSequence([
+    assert(subject21).to.emitSequence([
       `4 6 2 2`,
       `10 6 2 2`,
       `10 15 2 2`,
       `10 15 14 2`,
       `10 15 14 14`,
     ]);
-    await assert(subject22).to.emitSequence([
+    assert(subject22).to.emitSequence([
       `4 6 2 2`,
       `12 6 2 2`,
       `12 18 2 2`,
@@ -219,9 +220,9 @@ test('@grapevine/core/functional', () => {
       `12 18 16 16`,
     ]);
 
-    await assert(test11.getVine()).to.emitWith(vine1);
-    await assert(test12.getVine()).to.emitWith(vine2);
-    await assert(test21.getVine()).to.emitWith(vine1);
-    await assert(test22.getVine()).to.emitWith(vine2);
+    assert(test11.getVine()).to.emitWith(vine1);
+    assert(test12.getVine()).to.emitWith(vine2);
+    assert(test21.getVine()).to.emitWith(vine1);
+    assert(test22.getVine()).to.emitWith(vine2);
   });
 });

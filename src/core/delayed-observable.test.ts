@@ -1,6 +1,8 @@
 import { assert, should, test } from '@gs-testing';
 import { of as observableOf, ReplaySubject } from '@rxjs';
+
 import { __inject } from '../types/injectable';
+
 import { Builder } from './builder';
 import { DelayedObservable } from './delayed-observable';
 
@@ -14,11 +16,11 @@ test('@grapevine/core/delayed-observable', () => {
     const subject = new ReplaySubject(1);
     obs.subscribe(subject);
 
-    await assert(subject).toNot.emit();
+    assert(subject).toNot.emit();
 
     const vine = builder.build('test');
     obs[__inject](vine);
 
-    await assert(subject).to.emitWith(value);
+    assert(subject).to.emitWith(value);
   });
 });

@@ -1,6 +1,8 @@
 import { assert, setup, should, test } from '@gs-testing';
 import { BehaviorSubject, ReplaySubject } from '@rxjs';
+
 import { __inject } from '../types/injectable';
+
 import { Builder } from './builder';
 import { DelayedSubject } from './delayed-subject';
 
@@ -18,7 +20,7 @@ test('@grapevine/core/delayed-subject', () => {
     const replaySubject = new ReplaySubject(2);
     subject.subscribe(replaySubject);
 
-    await assert(replaySubject).toNot.emit();
+    assert(replaySubject).toNot.emit();
 
     const vine = builder.build('test');
     subject[__inject](vine);
@@ -26,6 +28,6 @@ test('@grapevine/core/delayed-subject', () => {
     const value = 123;
     subject.next(value);
 
-    await assert(replaySubject).to.emitSequence([1, value]);
+    assert(replaySubject).to.emitSequence([1, value]);
   });
 });
