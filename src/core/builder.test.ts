@@ -1,4 +1,4 @@
-import { assert, createSpy, setup, should, test } from '@gs-testing';
+import { assert, createSpy, setup, should, test } from 'gs-testing';
 
 import { Builder } from './builder';
 

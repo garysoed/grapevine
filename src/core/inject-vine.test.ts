@@ -1,4 +1,4 @@
-import { assert, should, test } from '@gs-testing';
+import { assert, should, test } from 'gs-testing';
 import { BehaviorSubject, of as observableOf } from 'rxjs';
 
 import { Builder } from './builder';

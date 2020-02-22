@@ -1,4 +1,4 @@
-import { assert, should, test } from '@gs-testing';
+import { assert, should, test } from 'gs-testing';
 import { of as observableOf, ReplaySubject } from 'rxjs';
 
 import { __inject } from '../types/injectable';
