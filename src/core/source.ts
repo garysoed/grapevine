@@ -1,4 +1,4 @@
-import { Subject } from '@rxjs';
+import { Subject } from 'rxjs';
 
 import { Factory } from '../types/factory';
 

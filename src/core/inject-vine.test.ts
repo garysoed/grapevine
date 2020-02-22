@@ -1,5 +1,5 @@
 import { assert, should, test } from '@gs-testing';
-import { BehaviorSubject, of as observableOf } from '@rxjs';
+import { BehaviorSubject, of as observableOf } from 'rxjs';
 
 import { Builder } from './builder';
 import { injectVine } from './inject-vine';

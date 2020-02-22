@@ -1,4 +1,4 @@
-import { Observable } from '@rxjs';
+import { Observable } from 'rxjs';
 
 import { Provider } from '../types/provider';
 

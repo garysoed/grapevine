@@ -1,5 +1,5 @@
-import { Observable, ReplaySubject } from '@rxjs';
-import { switchMap } from '@rxjs/operators';
+import { Observable, ReplaySubject } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import { __inject, Injectable } from '../types/injectable';
 

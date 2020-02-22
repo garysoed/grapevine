@@ -2,12 +2,16 @@
   "name": "grapevine",
   "version": "1.0.0",
   "description": "",
-  "main": "karma.config.js",
+  "main": "export/index.ts",
+  "files": [
+    "export/index.ts",
+    "export/internal.ts"
+  ],
   "dependencies": {
     "gs-testing": "^1.0.0",
     "gs-tools": "^1.0.0",
     "gs-types": "^1.0.0",
-    "rxjs": "^6.5.1"
+    "rxjs": "^6.5.4"
   },
   "devDependencies": {
     "@types/jasmine": "^2.8.7",

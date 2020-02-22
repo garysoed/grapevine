@@ -1,5 +1,5 @@
-import { of as observableOf } from '@rxjs';
-import { shareReplay } from '@rxjs/operators';
+import { of as observableOf } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 
 import { Factory } from '../types/factory';
 import { Provider } from '../types/provider';
@@ -30,7 +30,7 @@ export class Builder {
     return new Source(factory, context);
   }
 
-  stream<T, C>(provider: Provider<T, C>, context: C): Stream <T, C> {
+  stream<T, C>(provider: Provider<T, C>, context: C): Stream<T, C> {
     return new Stream(provider, context);
   }
 
