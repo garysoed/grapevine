@@ -1,12 +1,9 @@
 import { of as observableOf } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 
-import { Factory } from '../types/factory';
-import { Provider } from '../types/provider';
-
-import { Source } from './source';
-import { Stream } from './stream';
+import { Stream, stream } from './stream';
 import { Vine } from './vine';
+
 
 type InitFn = (vine: Vine) => unknown;
 
@@ -26,15 +23,7 @@ export class Builder {
     this.onRunFns.push(initFn);
   }
 
-  source<T, C>(factory: Factory<T, C>, context: C): Source<T, C> {
-    return new Source(factory, context);
-  }
-
-  stream<T, C>(provider: Provider<T, C>, context: C): Stream<T, C> {
-    return new Stream(provider, context);
-  }
-
   vine(): Stream<Vine, typeof globalThis> {
-    return new Stream(vine => observableOf(vine).pipe(shareReplay(1)), globalThis);
+    return stream(vine => observableOf(vine).pipe(shareReplay(1)), globalThis);
   }
 }

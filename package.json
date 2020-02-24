@@ -11,7 +11,8 @@
     "gs-testing": "^1.0.0",
     "gs-tools": "^1.0.0",
     "gs-types": "^1.0.0",
-    "rxjs": "^6.5.4"
+    "rxjs": "^6.5.4",
+    "tslib": "^1.11.0"
   },
   "devDependencies": {
     "@types/jasmine": "^2.8.7",
@@ -22,7 +23,7 @@
     "karma-jasmine": "^1.1.2",
     "karma-sourcemap-loader": "^0.3.7",
     "source-map-loader": "^0.2.3",
-    "typescript": "^3.7.2",
+    "typescript": "^3.8.2",
     "uglifyjs-webpack-plugin": "^1.2.5",
     "webpack": "^4.8.3",
     "webpack-notifier": "^1.7.0"
