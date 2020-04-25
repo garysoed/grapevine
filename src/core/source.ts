@@ -1,4 +1,4 @@
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 import { Factory } from '../types/factory';
 
@@ -12,11 +12,20 @@ class Source<T, C> {
       private readonly context: C,
   ) { }
 
-  get(vine: Vine): Subject<T> {
+  get(vine: Vine): Observable<T> {
+    return this.get_(vine);
+  }
+
+  set(vine: Vine, value: T): void {
+    this.get_(vine).next(value);
+  }
+
+  private get_(vine: Vine): Subject<T> {
     const sbj = this.subjects.get(vine) || this.factory.call(this.context, vine);
     this.subjects.set(vine, sbj);
 
     return sbj;
+
   }
 }
 

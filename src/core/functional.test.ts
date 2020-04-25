@@ -50,7 +50,7 @@ test('@grapevine/core/functional', () => {
     }
 
     setSource(vine: Vine, value: number): void {
-      this.instanceSource.get(vine).next(value);
+      this.instanceSource.set(vine, value);
     }
 
     // tslint:disable-next-line: prefer-function-over-method
@@ -81,8 +81,8 @@ test('@grapevine/core/functional', () => {
     test1.setSource(vine2, 4);
     test2.setSource(vine1, 5);
     test2.setSource(vine2, 6);
-    GLOBAL_SOURCE.get(vine1).next(5);
-    GLOBAL_SOURCE.get(vine2).next(6);
+    GLOBAL_SOURCE.set(vine1, 5);
+    GLOBAL_SOURCE.set(vine2, 6);
 
     assert(subject11).to.emitSequence([
       `2 6 1 2`,
