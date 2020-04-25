@@ -1,36 +1,32 @@
-import { Observable, Subject } from 'rxjs';
-
-import { Factory } from '../types/factory';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 import { Vine } from './vine';
 
-class Source<T, C> {
-  private readonly subjects: Map<Vine, Subject<T>> = new Map();
 
-  constructor(
-      private readonly factory: Factory<T, C>,
-      private readonly context: C,
-  ) { }
+class Source<T> {
+  private readonly subjects: Map<Vine, BehaviorSubject<T>> = new Map();
+
+  constructor(private readonly initValueProvider: (vine: Vine) => T) { }
 
   get(vine: Vine): Observable<T> {
     return this.get_(vine);
   }
 
-  set(vine: Vine, value: T): void {
-    this.get_(vine).next(value);
+  set(vine: Vine, mutator: (currentValue: T) => T): void {
+    const value$ = this.get_(vine);
+    value$.next(mutator(value$.getValue()));
   }
 
-  private get_(vine: Vine): Subject<T> {
-    const sbj = this.subjects.get(vine) || this.factory.call(this.context, vine);
+  private get_(vine: Vine): BehaviorSubject<T> {
+    const sbj = this.subjects.get(vine) || new BehaviorSubject(this.initValueProvider(vine));
     this.subjects.set(vine, sbj);
 
     return sbj;
-
   }
 }
 
-export function source<T, C>(factory: Factory<T, C>, context: C): Source<T, C> {
-  return new Source(factory, context);
+export function source<T>(valueProvider: (vine: Vine) => T): Source<T> {
+  return new Source(valueProvider);
 }
 
 export type { Source };

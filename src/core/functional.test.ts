@@ -1,5 +1,5 @@
 import { assert, should, test } from 'gs-testing';
-import { BehaviorSubject, combineLatest, Observable, ReplaySubject } from 'rxjs';
+import { combineLatest, Observable, ReplaySubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { source } from '../core/source';
@@ -10,7 +10,7 @@ import { Vine } from './vine';
 
 
 const builder = new Builder();
-const GLOBAL_SOURCE = source(() => new BehaviorSubject(1), globalThis);
+const GLOBAL_SOURCE = source(() => 1);
 const GLOBAL_STREAM = stream(
     vine => GLOBAL_SOURCE
         .get(vine)
@@ -20,7 +20,7 @@ const GLOBAL_STREAM = stream(
 
 test('@grapevine/core/functional', () => {
   class TestClass {
-    private readonly instanceSource = source(() => new BehaviorSubject(2), this);
+    private readonly instanceSource = source(() => 2);
     private readonly instanceStream = stream(this.stream, this);
     private readonly vineStream = builder.vine();
 
@@ -50,7 +50,7 @@ test('@grapevine/core/functional', () => {
     }
 
     setSource(vine: Vine, value: number): void {
-      this.instanceSource.set(vine, value);
+      this.instanceSource.set(vine, () => value);
     }
 
     // tslint:disable-next-line: prefer-function-over-method
@@ -81,8 +81,8 @@ test('@grapevine/core/functional', () => {
     test1.setSource(vine2, 4);
     test2.setSource(vine1, 5);
     test2.setSource(vine2, 6);
-    GLOBAL_SOURCE.set(vine1, 5);
-    GLOBAL_SOURCE.set(vine2, 6);
+    GLOBAL_SOURCE.set(vine1, v => v + 4);
+    GLOBAL_SOURCE.set(vine2, v => v + 5);
 
     assert(subject11).to.emitSequence([
       `2 6 1 2`,
