@@ -1,4 +1,5 @@
 import { Observable } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 
 import { Provider } from '../types/provider';
 
@@ -21,7 +22,11 @@ class Stream<T, C> {
 }
 
 export function stream<T, C>(provider: Provider<T, C>, context: C): Stream<T, C> {
-  return new Stream(provider, context);
+  return new Stream(
+      vine => provider.call(context, vine)
+          .pipe(shareReplay({bufferSize: 1, refCount: true})),
+      context,
+  );
 }
 
 export type { Stream };
