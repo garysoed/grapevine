@@ -24,6 +24,6 @@ export class Builder {
   }
 
   vine(): Stream<Vine, typeof globalThis> {
-    return stream(vine => observableOf(vine).pipe(shareReplay(1)), globalThis);
+    return stream('vine', vine => observableOf(vine).pipe(shareReplay(1)), globalThis);
   }
 }

@@ -10,8 +10,9 @@ import { Vine } from './vine';
 
 
 const builder = new Builder();
-const GLOBAL_SOURCE = source(() => 1);
+const GLOBAL_SOURCE = source('globalSource', () => 1);
 const GLOBAL_STREAM = stream(
+    'globalStream',
     vine => GLOBAL_SOURCE
         .get(vine)
         .pipe(map(value => value * 2)),
@@ -20,6 +21,7 @@ const GLOBAL_STREAM = stream(
 
 class TestWrapper { }
 const WRAPPER_STREAM = stream(
+    'globalSource',
     vine => GLOBAL_SOURCE.get(vine).pipe(
         map(() => new TestWrapper()),
     ),
@@ -28,8 +30,8 @@ const WRAPPER_STREAM = stream(
 
 test('@grapevine/core/functional', () => {
   class TestClass {
-    private readonly instanceSource = source(() => 2);
-    private readonly instanceStream = stream(this.stream, this);
+    private readonly instanceSource = source('instanceSource', () => 2);
+    private readonly instanceStream = stream('instanceStream', this.stream, this);
     private readonly vineStream = builder.vine();
 
     constructor(private readonly pad: number) { }
