@@ -24,7 +24,7 @@ class Stream<T, C> {
 export function stream<T, C>(provider: Provider<T, C>, context: C): Stream<T, C> {
   return new Stream(
       vine => provider.call(context, vine)
-          .pipe(shareReplay({bufferSize: 1, refCount: true})),
+          .pipe(shareReplay({bufferSize: 1, refCount: false})),
       context,
   );
 }
