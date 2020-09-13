@@ -3,6 +3,7 @@ import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { source } from '../core/source';
+import { stream } from '../core/stream';
 
 import { Builder } from './builder';
 import { Vine } from './vine';
@@ -10,11 +11,27 @@ import { Vine } from './vine';
 
 const builder = new Builder();
 const GLOBAL_SOURCE = source('globalSource', () => 1);
+const GLOBAL_STREAM = stream(
+    'globalStream',
+    vine => GLOBAL_SOURCE
+        .get(vine)
+        .pipe(map(value => value * 2)),
+    globalThis,
+);
 
+class TestWrapper { }
+const WRAPPER_STREAM = stream(
+    'globalSource',
+    vine => GLOBAL_SOURCE.get(vine).pipe(
+        map(() => new TestWrapper()),
+    ),
+    globalThis,
+);
 
 test('@grapevine/core/functional', () => {
   class TestClass {
     private readonly instanceSource = source('instanceSource', () => 2);
+    private readonly instanceStream = stream('instanceStream', this.stream, this);
     private readonly vineStream = builder.vine();
 
     constructor(private readonly pad: number) { }
@@ -22,13 +39,17 @@ test('@grapevine/core/functional', () => {
     getValue(vine: Vine): Observable<string> {
       return combineLatest([
         this.instanceSource.get(vine),
+        this.instanceStream.get(vine),
         GLOBAL_SOURCE.get(vine),
+        GLOBAL_STREAM.get(vine),
       ])
       .pipe(
-          map(([instanceSource, globalSource]) => {
+          map(([instanceSource, instanceStream, globalSource, globalStream]) => {
             return [
               instanceSource * this.pad,
+              instanceStream,
               globalSource * this.pad,
+              globalStream,
             ].join(' ');
           }),
       );
@@ -40,6 +61,11 @@ test('@grapevine/core/functional', () => {
 
     setSource(vine: Vine, value: number): void {
       this.instanceSource.set(vine, () => value);
+    }
+
+    // tslint:disable-next-line: prefer-function-over-method
+    private stream(vine: Vine): Observable<number> {
+      return this.instanceSource.get(vine).pipe(map(value => value * 3));
     }
   }
 
@@ -57,14 +83,18 @@ test('@grapevine/core/functional', () => {
     GLOBAL_SOURCE.set(vine1, v => v + 4);
 
     assert(subject11).to.emitSequence([
-      `2 1`,
-      `3 1`,
-      `3 5`,
+      `2 6 1 2`,
+      `3 6 1 2`,
+      `3 9 1 2`,
+      `3 9 5 2`,
+      `3 9 5 10`,
     ]);
     assert(subject21).to.emitSequence([
-      `4 2`,
-      `10 2`,
-      `10 10`,
+      `4 6 2 2`,
+      `10 6 2 2`,
+      `10 15 2 2`,
+      `10 15 2 10`,
+      `10 15 10 10`,
     ]);
 
     const subject12 = createSpySubject(test1.getValue(vine2));
@@ -73,18 +103,39 @@ test('@grapevine/core/functional', () => {
     test2.setSource(vine2, 6);
     GLOBAL_SOURCE.set(vine2, v => v + 5);
     assert(subject12).to.emitSequence([
-      `2 1`,
-      `4 1`,
-      `4 6`,
+      `2 6 1 2`,
+      `4 6 1 2`,
+      `4 12 1 2`,
+      `4 12 6 2`,
+      `4 12 6 12`,
     ]);
     assert(subject22).to.emitSequence([
-      `4 2`,
-      `12 2`,
-      `12 12`,
+      `4 6 2 2`,
+      `12 6 2 2`,
+      `12 18 2 2`,
+      `12 18 2 12`,
+      `12 18 12 12`,
     ]);
     assert(test1.getVine(vine1)).to.emitWith(vine1);
     assert(test1.getVine(vine2)).to.emitWith(vine2);
     assert(test2.getVine(vine1)).to.emitWith(vine1);
     assert(test2.getVine(vine2)).to.emitWith(vine2);
+  });
+
+  should(`provide the same instance with multiple subscriptions to streams and if the dependency emits`, () => {
+    const vine = builder.build('test');
+
+    const isEqual$ = createSpySubject(
+        combineLatest([WRAPPER_STREAM.get(vine), WRAPPER_STREAM.get(vine)]).pipe(
+            map(([obj1, obj2]) => obj1 === obj2),
+        ),
+    );
+    GLOBAL_SOURCE.set(vine, () => 3);
+
+    assert(isEqual$).to.emitSequence([
+      true, // initial value of source
+      false, // one of the wrappers is updated
+      true, // both wrappers are updated
+    ]);
   });
 });
