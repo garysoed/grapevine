@@ -15,15 +15,13 @@
     "@types/jasmine": "^2.8.7",
     "awesome-typescript-loader": "^5.0.0",
     "jasmine-core": "^3.1.0",
-    "karma": "^2.0.2",
     "karma-chrome-launcher": "^2.2.0",
     "karma-jasmine": "^4.0.1",
     "karma-sourcemap-loader": "^0.3.7",
     "source-map-loader": "^0.2.3",
     "ts-loader": "^7.0.1",
     "typescript": "^3.8.2",
-    "uglifyjs-webpack-plugin": "^1.2.5",
-    "webpack": "^4.8.3",
+    "webpack": "^4.44.1",
     "webpack-notifier": "^1.7.0"
   },
   "peerDependencies": {
