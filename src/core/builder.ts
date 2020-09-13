@@ -1,7 +1,4 @@
-import { of as observableOf } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
-
-import { Stream, stream } from './stream';
+import { source, Source } from './source';
 import { Vine } from './vine';
 
 
@@ -23,7 +20,7 @@ export class Builder {
     this.onRunFns.push(initFn);
   }
 
-  vine(): Stream<Vine, typeof globalThis> {
-    return stream('vine', vine => observableOf(vine).pipe(shareReplay(1)), globalThis);
+  vine(): Source<Vine> {
+    return source('vine', vine => vine);
   }
 }
