@@ -16,7 +16,6 @@ const GLOBAL_STREAM = stream(
     vine => GLOBAL_SOURCE
         .get(vine)
         .pipe(map(value => value * 2)),
-    globalThis,
 );
 
 class TestWrapper { }
@@ -25,13 +24,12 @@ const WRAPPER_STREAM = stream(
     vine => GLOBAL_SOURCE.get(vine).pipe(
         map(() => new TestWrapper()),
     ),
-    globalThis,
 );
 
 test('@grapevine/core/functional', () => {
   class TestClass {
     private readonly instanceSource = source('instanceSource', () => 2);
-    private readonly instanceStream = stream('instanceStream', this.stream, this);
+    private readonly instanceStream = stream('instanceStream', vine => this.stream(vine));
     private readonly vineStream = builder.vine();
 
     constructor(private readonly pad: number) { }

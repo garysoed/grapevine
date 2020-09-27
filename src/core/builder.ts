@@ -23,7 +23,7 @@ export class Builder {
     this.onRunFns.push(initFn);
   }
 
-  vine(): Stream<Vine, typeof globalThis> {
-    return stream('vine', vine => observableOf(vine).pipe(shareReplay(1)), globalThis);
+  vine(): Stream<Vine> {
+    return stream('vine', vine => observableOf(vine).pipe(shareReplay(1)));
   }
 }

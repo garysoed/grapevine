@@ -8,37 +8,36 @@ import { Provider } from '../types/provider';
 
 import { Vine } from './vine';
 
+
 const LOGGER = new Logger('grapevine');
 
-class Stream<T, C> {
+class Stream<T> {
   private readonly observables: Map<Vine, Observable<T>> = new Map();
 
   constructor(
-      private readonly provider: Provider<T, C>,
-      private readonly context: C,
+      private readonly provider: Provider<T>,
   ) { }
 
   get(vine: Vine): Observable<T> {
-    const obs = this.observables.get(vine) || this.provider.call(this.context, vine);
+    const obs = this.observables.get(vine) || this.provider(vine);
     this.observables.set(vine, obs);
 
     return obs;
   }
 }
 
-export function stream<T, C>(
+export function stream<T>(
     key: string,
-    provider: Provider<T, C>,
-    context: C,
-): Stream<T, C> {
+    provider: Provider<T>,
+): Stream<T> {
   return new Stream(
-      vine => provider.call(context, vine)
+      vine => provider(vine)
           .pipe(
               shareReplay({bufferSize: 1, refCount: false}),
               debug(LOGGER, Verbosity.NONE, 'stream', key),
           ),
-      context,
   );
 }
 
 export type { Stream };
+
