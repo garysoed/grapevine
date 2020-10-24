@@ -1,5 +1,4 @@
 import { debug } from 'gs-tools/export/rxjs';
-import { Verbosity } from 'moirai';
 import { Observable } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 import { Logger } from 'santa';
@@ -34,7 +33,7 @@ export function stream<T>(
       vine => provider(vine)
           .pipe(
               shareReplay({bufferSize: 1, refCount: false}),
-              debug(LOGGER, Verbosity.NONE, 'stream', key),
+              debug(LOGGER, 'stream', key),
           ),
   );
 }

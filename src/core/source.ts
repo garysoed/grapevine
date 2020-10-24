@@ -1,9 +1,9 @@
 import { debug } from 'gs-tools/export/rxjs';
-import { Verbosity } from 'moirai';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Logger } from 'santa';
 
 import { Vine } from './vine';
+
 
 const LOGGER = new Logger('grapevine');
 
@@ -16,9 +16,7 @@ class Source<T> {
   ) { }
 
   get(vine: Vine): Observable<T> {
-    return this.get_(vine).pipe(
-        debug(LOGGER, Verbosity.NONE, 'source', this.key),
-    );
+    return this.get_(vine).pipe(debug(LOGGER, 'source', this.key));
   }
 
   set(vine: Vine, mutator: (currentValue: T) => T): void {
@@ -42,3 +40,4 @@ export function source<T>(
 }
 
 export type { Source };
+
