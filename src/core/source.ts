@@ -1,8 +1,8 @@
-import { debug } from 'gs-tools/export/rxjs';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { Logger } from 'santa';
+import {debug} from 'gs-tools/export/rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {Logger} from 'santa';
 
-import { Vine } from './vine';
+import {Vine} from './vine';
 
 
 const LOGGER = new Logger('grapevine');
@@ -39,5 +39,5 @@ export function source<T>(
   return new Source(key, valueProvider);
 }
 
-export type { Source };
+export type {Source};
 

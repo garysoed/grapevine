@@ -1,6 +1,6 @@
-import { assert, createSpy, should, test } from 'gs-testing';
+import {assert, createSpy, should, test} from 'gs-testing';
 
-import { Builder } from './builder';
+import {Builder} from './builder';
 
 test('@grapevine/core/builder', init => {
   const _ = init(() => {
@@ -9,7 +9,7 @@ test('@grapevine/core/builder', init => {
   });
 
   test('build', () => {
-    should(`run the run handlers`, () => {
+    should('run the run handlers', () => {
       const mockHandler1 = createSpy('Handler1');
       const mockHandler2 = createSpy('Handler2');
       _.builder.onRun(mockHandler1);

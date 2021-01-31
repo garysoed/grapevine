@@ -1,8 +1,8 @@
-import { of as observableOf } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
+import {of as observableOf} from 'rxjs';
+import {shareReplay} from 'rxjs/operators';
 
-import { Stream, stream } from './stream';
-import { Vine } from './vine';
+import {Stream, stream} from './stream';
+import {Vine} from './vine';
 
 
 type InitFn = (vine: Vine) => unknown;

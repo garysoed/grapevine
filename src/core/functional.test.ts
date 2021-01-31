@@ -1,12 +1,12 @@
-import { assert, createSpySubject, should, test } from 'gs-testing';
-import { combineLatest, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import {assert, createSpySubject, should, test} from 'gs-testing';
+import {combineLatest, Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 
-import { source } from '../core/source';
-import { stream } from '../core/stream';
+import {source} from '../core/source';
+import {stream} from '../core/stream';
 
-import { Builder } from './builder';
-import { Vine } from './vine';
+import {Builder} from './builder';
+import {Vine} from './vine';
 
 
 const builder = new Builder();
@@ -41,16 +41,16 @@ test('@grapevine/core/functional', () => {
         GLOBAL_SOURCE.get(vine),
         GLOBAL_STREAM.get(vine),
       ])
-      .pipe(
-          map(([instanceSource, instanceStream, globalSource, globalStream]) => {
-            return [
-              instanceSource * this.pad,
-              instanceStream,
-              globalSource * this.pad,
-              globalStream,
-            ].join(' ');
-          }),
-      );
+          .pipe(
+              map(([instanceSource, instanceStream, globalSource, globalStream]) => {
+                return [
+                  instanceSource * this.pad,
+                  instanceStream,
+                  globalSource * this.pad,
+                  globalStream,
+                ].join(' ');
+              }),
+          );
     }
 
     getVine(vine: Vine): Observable<Vine> {
@@ -67,7 +67,7 @@ test('@grapevine/core/functional', () => {
     }
   }
 
-  should(`provide the correct values for non injected class`, () => {
+  should('provide the correct values for non injected class', () => {
     const vine1 = builder.build('test1');
     const vine2 = builder.build('test2');
     const test1 = new TestClass(1);
@@ -81,18 +81,18 @@ test('@grapevine/core/functional', () => {
     GLOBAL_SOURCE.set(vine1, v => v + 4);
 
     assert(subject11).to.emitSequence([
-      `2 6 1 2`,
-      `3 6 1 2`,
-      `3 9 1 2`,
-      `3 9 5 2`,
-      `3 9 5 10`,
+      '2 6 1 2',
+      '3 6 1 2',
+      '3 9 1 2',
+      '3 9 5 2',
+      '3 9 5 10',
     ]);
     assert(subject21).to.emitSequence([
-      `4 6 2 2`,
-      `10 6 2 2`,
-      `10 15 2 2`,
-      `10 15 2 10`,
-      `10 15 10 10`,
+      '4 6 2 2',
+      '10 6 2 2',
+      '10 15 2 2',
+      '10 15 2 10',
+      '10 15 10 10',
     ]);
 
     const subject12 = createSpySubject(test1.getValue(vine2));
@@ -101,18 +101,18 @@ test('@grapevine/core/functional', () => {
     test2.setSource(vine2, 6);
     GLOBAL_SOURCE.set(vine2, v => v + 5);
     assert(subject12).to.emitSequence([
-      `2 6 1 2`,
-      `4 6 1 2`,
-      `4 12 1 2`,
-      `4 12 6 2`,
-      `4 12 6 12`,
+      '2 6 1 2',
+      '4 6 1 2',
+      '4 12 1 2',
+      '4 12 6 2',
+      '4 12 6 12',
     ]);
     assert(subject22).to.emitSequence([
-      `4 6 2 2`,
-      `12 6 2 2`,
-      `12 18 2 2`,
-      `12 18 2 12`,
-      `12 18 12 12`,
+      '4 6 2 2',
+      '12 6 2 2',
+      '12 18 2 2',
+      '12 18 2 12',
+      '12 18 12 12',
     ]);
     assert(test1.getVine(vine1)).to.emitWith(vine1);
     assert(test1.getVine(vine2)).to.emitWith(vine2);
@@ -120,7 +120,7 @@ test('@grapevine/core/functional', () => {
     assert(test2.getVine(vine2)).to.emitWith(vine2);
   });
 
-  should(`provide the same instance with multiple subscriptions to streams and if the dependency emits`, () => {
+  should('provide the same instance with multiple subscriptions to streams and if the dependency emits', () => {
     const vine = builder.build('test');
 
     const isEqual$ = createSpySubject(

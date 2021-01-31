@@ -1,11 +1,11 @@
-import { debug } from 'gs-tools/export/rxjs';
-import { Observable } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
-import { Logger } from 'santa';
+import {debug} from 'gs-tools/export/rxjs';
+import {Observable} from 'rxjs';
+import {shareReplay} from 'rxjs/operators';
+import {Logger} from 'santa';
 
-import { Provider } from '../types/provider';
+import {Provider} from '../types/provider';
 
-import { Vine } from './vine';
+import {Vine} from './vine';
 
 
 const LOGGER = new Logger('grapevine');
@@ -38,5 +38,5 @@ export function stream<T>(
   );
 }
 
-export type { Stream };
+export type {Stream};
 
