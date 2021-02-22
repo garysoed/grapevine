@@ -1,34 +1,17 @@
-import {debug} from 'gs-tools/export/rxjs';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {Logger} from 'santa';
-
-import {Vine} from './vine';
+import {Id, __unused} from './id';
+import {Vine, __getOrInit} from './vine';
 
 
-const LOGGER = new Logger('grapevine');
-
-class Source<T> {
-  private readonly subjects: Map<Vine, BehaviorSubject<T>> = new Map();
+export class Source<T> implements Id<T> {
+  readonly [__unused] = {};
 
   constructor(
-      private readonly key: string,
-      private readonly initValueProvider: (vine: Vine) => T,
+      readonly key: string,
+      readonly provider: (vine: Vine) => T,
   ) { }
 
-  get(vine: Vine): Observable<T> {
-    return this.get_(vine).pipe(debug(LOGGER, 'source', this.key));
-  }
-
-  set(vine: Vine, mutator: (currentValue: T) => T): void {
-    const value$ = this.get_(vine);
-    value$.next(mutator(value$.getValue()));
-  }
-
-  private get_(vine: Vine): BehaviorSubject<T> {
-    const sbj = this.subjects.get(vine) || new BehaviorSubject(this.initValueProvider(vine));
-    this.subjects.set(vine, sbj);
-
-    return sbj;
+  get(vine: Vine): T {
+    return vine[__getOrInit](this, this.provider);
   }
 }
 
@@ -38,6 +21,3 @@ export function source<T>(
 ): Source<T> {
   return new Source(key, valueProvider);
 }
-
-export type {Source};
-
