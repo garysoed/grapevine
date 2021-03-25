@@ -33,11 +33,11 @@ export class Vine {
   }
 
   private initCache(): Map<unknown, any> {
-    return $pipe(
+    return new Map($pipe(
         this.config.overrides ?? [],
         $map(({override, withValue}) => [override, withValue] as const),
         $asMap(),
-    );
+    ));
   }
 
   get appName(): string {
