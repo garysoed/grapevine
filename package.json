@@ -8,6 +8,7 @@
     "export/internal.ts"
   ],
   "dependencies": {
+    "glob": "^7.1.6",
     "rxjs": "^6.6.7",
     "tslib": "^1.11.1"
   },
