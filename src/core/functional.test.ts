@@ -5,22 +5,16 @@ import {source} from '../core/source';
 import {Vine} from './vine';
 
 
-const GLOBAL_SOURCE = source('globalSource', () => 1);
-const GLOBAL_STREAM = source(
-    'globalStream',
-    vine => GLOBAL_SOURCE.get(vine) * 2,
-);
+const GLOBAL_SOURCE = source(() => 1);
+const GLOBAL_STREAM = source(vine => GLOBAL_SOURCE.get(vine) * 2);
 
 class TestWrapper { }
-const WRAPPER_SOURCE = source(
-    'wrapperSource',
-    () => new TestWrapper(),
-);
+const WRAPPER_SOURCE = source(() => new TestWrapper());
 
 test('@grapevine/core/functional', () => {
   class TestClass {
-    private readonly instanceSource = source('instanceSource', () => 2);
-    private readonly instanceStream = source('instanceStream', vine => this.stream(vine));
+    private readonly instanceSource = source(() => 2);
+    private readonly instanceStream = source(vine => this.stream(vine));
 
     constructor(private readonly pad: number) { }
 
