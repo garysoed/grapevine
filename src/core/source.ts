@@ -11,8 +11,6 @@ export class Source<T> implements Id<T> {
   }
 }
 
-export function source<T>(
-    valueProvider: (vine: Vine) => T,
-): Source<T> {
+export function source<T>(valueProvider: (vine: Vine) => T): Source<T> {
   return new Source(valueProvider);
 }
