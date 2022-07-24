@@ -1,4 +1,5 @@
-import {$asMap, $map, $pipe} from 'gs-tools/export/collect';
+import {$asMap, $map} from 'gs-tools/export/collect';
+import {$pipe} from 'gs-tools/export/typescript';
 
 import {Id} from './id';
 
