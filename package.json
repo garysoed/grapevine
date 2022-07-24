@@ -31,7 +31,6 @@
     "source-map-loader": "^0.2.3",
     "ts-loader": "^7.0.1",
     "typescript": "^3.8.2",
-    "webpack": "^4.44.1",
     "webpack-notifier": "^1.7.0"
   },
   "peerDependencies": {
