@@ -38,8 +38,8 @@ test('@grapevine/core/functional', () => {
   }
 
   should('provide the correct values for non injected class', () => {
-    const vine1 = new Vine({appName: 'test1'});
-    const vine2 = new Vine({appName: 'test2'});
+    const vine1 = new Vine();
+    const vine2 = new Vine();
     const test1 = new TestClass(1);
     const test2 = new TestClass(2);
 
@@ -55,8 +55,9 @@ test('@grapevine/core/functional', () => {
     assert(value22).to.equal('4 6 2 2');
   });
 
-  should('provide the same instance with multiple subscriptions to streams and if the dependency emits', () => {
-    const vine = new Vine({appName: 'test'});
+  should('provide the same instance with multiple subscriptions to streams and if the '
+      + 'dependency emits', () => {
+    const vine = new Vine({});
 
     assert(WRAPPER_SOURCE.get(vine)).to.equal(WRAPPER_SOURCE.get(vine));
   });
