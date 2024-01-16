@@ -11,6 +11,11 @@ export class Source<T> implements Id<T> {
   }
 }
 
-export function source<T>(valueProvider: (vine: Vine) => T): Source<T> {
+export function source<T>(valueProvider: ((vine: Vine) => T)|string): Source<T> {
+  if (typeof valueProvider === 'string') {
+    return new Source(() => {
+      throw new Error(`Key ${valueProvider} is not provided`);
+    });
+  }
   return new Source(valueProvider);
 }
