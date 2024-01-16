@@ -5,11 +5,21 @@ import {Id} from './id';
 
 
 export const __getOrInit = Symbol('getOrInit');
+const __override = Symbol('override');
 
 
 export interface Override<T> {
+  readonly [__override]: unknown;
   readonly override: Id<T>;
   readonly withValue: T;
+}
+
+export function override<T>(id: Id<T>, value: T): Override<T> {
+  return {
+    [__override]: 'override',
+    override: id,
+    withValue: value,
+  };
 }
 
 export interface Config {
