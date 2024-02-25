@@ -3,10 +3,8 @@ import {$pipe} from 'gs-tools/export/typescript';
 
 import {Id} from './id';
 
-
 export const __getOrInit = Symbol('getOrInit');
 const __override = Symbol('override');
-
 
 export interface Override<T> {
   readonly [__override]: unknown;
@@ -29,7 +27,7 @@ export interface Config {
 export class Vine {
   private readonly cache = this.initCache();
 
-  constructor(private readonly config: Config = {}) { }
+  constructor(private readonly config: Config = {}) {}
 
   [__getOrInit]<T>(key: Id<T>, provider: (vine: Vine) => T): T {
     const cachedValue = this.cache.get(key);
@@ -43,10 +41,12 @@ export class Vine {
   }
 
   private initCache(): Map<unknown, any> {
-    return new Map($pipe(
+    return new Map(
+      $pipe(
         this.config.overrides ?? [],
         $map(({override, withValue}) => [override, withValue] as const),
         $asMap(),
-    ));
+      ),
+    );
   }
 }

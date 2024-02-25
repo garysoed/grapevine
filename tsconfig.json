@@ -5,14 +5,9 @@
     "outDir": "out",
     "paths": {
       "rxjs": ["node_modules/rxjs"],
-      "rxjs/*": ["node_modules/rxjs/*"],
+      "rxjs/*": ["node_modules/rxjs/*"]
     }
   },
-  "include": [
-    "src/**/*.test.ts",
-    "export/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["src/**/*.test.ts", "export/*.ts"],
+  "exclude": ["node_modules"]
 }

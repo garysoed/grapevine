@@ -4,19 +4,18 @@ import {source} from '../core/source';
 
 import {Vine} from './vine';
 
-
 const GLOBAL_SOURCE = source(() => 1);
-const GLOBAL_STREAM = source(vine => GLOBAL_SOURCE.get(vine) * 2);
+const GLOBAL_STREAM = source((vine) => GLOBAL_SOURCE.get(vine) * 2);
 
-class TestWrapper { }
+class TestWrapper {}
 const WRAPPER_SOURCE = source(() => new TestWrapper());
 
 test('@grapevine/core/functional', () => {
   class TestClass {
     private readonly instanceSource = source(() => 2);
-    private readonly instanceStream = source(vine => this.stream(vine));
+    private readonly instanceStream = source((vine) => this.stream(vine));
 
-    constructor(private readonly pad: number) { }
+    constructor(private readonly pad: number) {}
 
     getValue(vine: Vine): string {
       const instanceSource = this.instanceSource.get(vine);
@@ -55,10 +54,13 @@ test('@grapevine/core/functional', () => {
     assert(value22).to.equal('4 6 2 2');
   });
 
-  should('provide the same instance with multiple subscriptions to streams and if the '
-      + 'dependency emits', () => {
-    const vine = new Vine({});
+  should(
+    'provide the same instance with multiple subscriptions to streams and if the ' +
+      'dependency emits',
+    () => {
+      const vine = new Vine({});
 
-    assert(WRAPPER_SOURCE.get(vine)).to.equal(WRAPPER_SOURCE.get(vine));
-  });
+      assert(WRAPPER_SOURCE.get(vine)).to.equal(WRAPPER_SOURCE.get(vine));
+    },
+  );
 });
