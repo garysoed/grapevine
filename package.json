@@ -1,11 +1,13 @@
 {
   "name": "grapevine",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "export/index.ts",
   "files": [
     "export/index.ts",
-    "export/internal.ts"
+    "export/internal.ts",
+    "src"
   ],
   "dependencies": {
     "glob": "^10.3.10",
