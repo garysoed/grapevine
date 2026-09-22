@@ -26,9 +26,10 @@ export interface Config {
 }
 
 export class Vine {
-  private readonly cache = this.initCache();
+  private readonly cache: Map<unknown, any>;
 
   constructor(private readonly config: Config = {}) {
+    this.cache = this.initCache();
     this.checkUninitializedSources(config.overrides ?? []);
   }
 
